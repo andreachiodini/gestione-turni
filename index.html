@@ -5,7 +5,7 @@
   <title>Gestione Turni Collaboratori</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Firebase App (Core) -->
+  <!-- Firebase Core SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
@@ -130,12 +130,13 @@
 </div>
 
 <script>
-  // Firebase Config
+  // Firebase Config CORRETTO
   const firebaseConfig = {
     apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
     authDomain: "gestione-turni-50fc4.firebaseapp.com",
+    databaseURL: "https://gestione-turni-50fc4-default-rtdb.europe-west1.firebasedatabase.app", // <- Aggiunto!
     projectId: "gestione-turni-50fc4",
-    storageBucket: "gestione-turni-50fc4.firebasestorage.app",
+    storageBucket: "gestione-turni-50fc4.appspot.com",
     messagingSenderId: "1067061975120",
     appId: "1:1067061975120:web:8ccfb053119c3d15329955",
     measurementId: "G-Y19TG637V9"
@@ -160,7 +161,7 @@
         document.getElementById('shift-section').style.display = 'block';
         document.getElementById('user-name').innerText = user.email;
         
-        // Correzione: pulizia email
+        // Pulisce l'email per usarla come chiave Firebase
         currentUser = user.email.replace(/[.#$\[\]]/g, '_');
 
         loadShifts();
@@ -203,14 +204,14 @@
             <td>${role}</td>
           `;
           shiftTableBody.appendChild(row);
-          console.log("Turno aggiunto correttamente su Firebase");
+          console.log("Turno salvato correttamente su Firebase");
         })
         .catch((error) => {
-          console.error("Errore nel salvataggio su Firebase:", error.message);
-          alert("Errore nel salvataggio. Controlla la connessione o le regole del database.");
+          console.error("Errore di salvataggio:", error.message);
+          alert("Errore nel salvataggio. Controlla la connessione o le regole database.");
         });
     } else {
-      alert("Utente non identificato. Ricarica e rifai login.");
+      alert("Utente non identificato. Ricarica la pagina e rifai il login.");
     }
   }
 
@@ -234,7 +235,7 @@
         }
       })
       .catch((error) => {
-        console.error('Errore nel caricamento dei turni:', error.message);
+        console.error('Errore caricamento turni:', error.message);
       });
   }
 
@@ -265,13 +266,13 @@
       .then(() => {
         user.updatePassword(newPassword)
           .then(() => {
-            passwordMessage.innerText = "Password cambiata con successo!";
+            passwordMessage.innerText = "Password cambiata!";
             passwordMessage.style.color = "green";
             document.getElementById('old-password').value = '';
             document.getElementById('new-password').value = '';
           })
           .catch((error) => {
-            passwordMessage.innerText = "Errore nel cambio: " + error.message;
+            passwordMessage.innerText = "Errore: " + error.message;
             passwordMessage.style.color = "red";
           });
       })
@@ -287,7 +288,7 @@
 
     firebase.auth().sendPasswordResetEmail(email)
       .then(() => {
-        resetMessage.innerText = "Email di reset inviata! Controlla la tua casella.";
+        resetMessage.innerText = "Email inviata. Controlla la casella.";
         resetMessage.style.color = "green";
       })
       .catch((error) => {
