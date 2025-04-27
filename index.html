@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Gestione Turni Collaboratori</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
   <!-- Firebase Core SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
@@ -53,8 +53,9 @@
     }
   </style>
 </head>
+
 <body>
-  <h1>Gestione Turni Collaboratori</h1>
+<h1>Gestione Turni Collaboratori</h1>
 
 <!-- Login Form -->
 <div id="login-form">
@@ -64,7 +65,6 @@
   <button onclick="login()">Accedi</button>
   <div id="error-message"></div>
 
-  <!-- Reset Password Section -->
   <div id="reset-password-section" style="margin-top: 30px;">
     <h3>Password dimenticata?</h3>
     <input type="email" id="reset-email" placeholder="Inserisci la tua email">
@@ -77,42 +77,44 @@
 <div id="shift-section" style="display:none;">
   <h2>Benvenuto, <span id="user-name"></span>!</h2>
 
-  <!-- Form Aggiunta Turno -->
   <div class="form-group">
     <label for="date">Data</label>
     <input type="date" id="date">
   </div>
-
   <div class="form-group">
     <label for="start-time">Ora Inizio</label>
     <input type="time" id="start-time">
   </div>
-
   <div class="form-group">
     <label for="end-time">Ora Fine</label>
     <input type="time" id="end-time">
   </div>
-
   <div class="form-group">
     <label for="role">Mansione</label>
-    <select id="role">
-      <!-- (Tra poco ti incollo anche qui tutte le mansioni complete!) -->
-    </select>
+    <select id="role"></select>
   </div>
 
   <button onclick="addShift()">Aggiungi / Salva Modifica</button>
   <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
-  <!-- Filtro per mansione -->
+  <!-- Filtro per data -->
   <div style="margin-top:20px;">
-    <h3>Filtra Turni per Mansione</h3>
-    <select id="filter-role" onchange="loadShifts()">
-      <option value="">Tutte le Mansioni</option>
-      <!-- (Anche qui caricheremo mansioni dinamicamente) -->
+    <h3>Filtra Turni per Data</h3>
+    <label for="start-date">Data Inizio</label>
+    <input type="date" id="start-date" onchange="loadShifts()">
+    <label for="end-date">Data Fine</label>
+    <input type="date" id="end-date" onchange="loadShifts()">
+  </div>
+
+  <!-- Filtro Ordinamento -->
+  <div style="margin-top:20px;">
+    <h3>Ordinamento Turni</h3>
+    <select id="sort-order" onchange="loadShifts()">
+      <option value="asc">Dal più vecchio</option>
+      <option value="desc">Dal più recente</option>
     </select>
   </div>
 
-  <!-- Tabella Turni -->
   <table id="shift-table">
     <thead>
       <tr>
@@ -123,28 +125,20 @@
         <th>Azioni</th>
       </tr>
     </thead>
-    <tbody>
-      <!-- Turni caricati -->
-    </tbody>
+    <tbody></tbody>
   </table>
 
-  <!-- Riepilogo Ore Totali -->
+  <!-- Riepilogo Ore -->
   <div class="summary-table">
     <h3>Ore Lavorate per Mansione</h3>
     <table id="summary-table">
       <thead>
-        <tr>
-          <th>Mansione</th>
-          <th>Ore Totali</th>
-        </tr>
+        <tr><th>Mansione</th><th>Ore Totali</th></tr>
       </thead>
-      <tbody>
-        <!-- Riepilogo caricato -->
-      </tbody>
+      <tbody></tbody>
     </table>
   </div>
 
-  <!-- Cambio Password Section -->
   <details>
     <summary>Cambia la tua password</summary>
     <div style="margin-top: 10px;">
@@ -155,266 +149,188 @@
     </div>
   </details>
 </div>
-  <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
-    authDomain: "gestione-turni-50fc4.firebaseapp.com",
-    databaseURL: "https://gestione-turni-50fc4-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "gestione-turni-50fc4",
-    storageBucket: "gestione-turni-50fc4.appspot.com",
-    messagingSenderId: "1067061975120",
-    appId: "1:1067061975120:web:8ccfb053119c3d15329955",
-    measurementId: "G-Y19TG637V9"
-  };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const database = firebase.database();
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
+  authDomain: "gestione-turni-50fc4.firebaseapp.com",
+  databaseURL: "https://gestione-turni-50fc4-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "gestione-turni-50fc4",
+  storageBucket: "gestione-turni-50fc4.appspot.com",
+  messagingSenderId: "1067061975120",
+  appId: "1:1067061975120:web:8ccfb053119c3d15329955",
+  measurementId: "G-Y19TG637V9"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const database = firebase.database();
 
-  let currentUser = "";
-  let editingShiftId = null;
-  const shiftTableBody = document.querySelector('#shift-table tbody');
-  const summaryTableBody = document.querySelector('#summary-table tbody');
-  const roleSelect = document.getElementById('role');
-  const filterSelect = document.getElementById('filter-role');
+let currentUser = "";
+let editingShiftId = null;
+const shiftTableBody = document.querySelector('#shift-table tbody');
+const summaryTableBody = document.querySelector('#summary-table tbody');
+const roleSelect = document.getElementById('role');
 
-  const mansions = [
-    "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO",
-    "Cassa FERIALE", "Cassa FESTIVO",
-    "Rotazione FERIALE", "Rotazione FESTIVO",
-    "Istruttore FERIALE", "Istruttore FESTIVO",
-    "Aiuto allenatore FERIALE", "Aiuto allenatore FESTIVO",
-    "Sincro/Pallan FERIALE", "Sincro/Pallan FESTIVO",
-    "Acquagym FERIALE", "Acquagym FESTIVO",
-    "Baby istruttore FERIALE", "Baby istruttore FESTIVO",
-    "Baby aiuto allenatore FERIALE", "Baby aiuto allenatore FESTIVO",
-    "Neonatale FERIALE", "Neonatale FESTIVO",
-    "Preparto FERIALE", "Preparto FESTIVO",
-    "Lezione individuale FERIALE", "Lezione individuale FESTIVO",
-    "Propaganda FERIALE", "Propaganda FESTIVO",
-    "Segreteria FERIALE", "Segreteria FESTIVO",
-    "Coordinatore FERIALE", "Coordinatore FESTIVO",
-    "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
-  ];
+const mansions = [
+  "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO",
+  "Cassa FERIALE", "Cassa FESTIVO", "Rotazione FERIALE", "Rotazione FESTIVO",
+  "Istruttore FERIALE", "Istruttore FESTIVO", "Aiuto allenatore FERIALE", "Aiuto allenatore FESTIVO",
+  "Sincro/Pallan FERIALE", "Sincro/Pallan FESTIVO", "Acquagym FERIALE", "Acquagym FESTIVO",
+  "Baby istruttore FERIALE", "Baby istruttore FESTIVO", "Baby aiuto allenatore FERIALE", "Baby aiuto allenatore FESTIVO",
+  "Neonatale FERIALE", "Neonatale FESTIVO", "Preparto FERIALE", "Preparto FESTIVO",
+  "Lezione individuale FERIALE", "Lezione individuale FESTIVO", "Propaganda FERIALE", "Propaganda FESTIVO",
+  "Segreteria FERIALE", "Segreteria FESTIVO", "Coordinatore FERIALE", "Coordinatore FESTIVO",
+  "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
+];
+mansions.forEach(role => {
+  const option = document.createElement('option');
+  option.value = role;
+  option.textContent = role;
+  roleSelect.appendChild(option);
+});
 
-  // Carichiamo le mansioni nei <select>
-  mansions.forEach(role => {
-    const option1 = document.createElement('option');
-    option1.value = role;
-    option1.textContent = role;
-    roleSelect.appendChild(option1);
+function login() {
+  const email = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  auth.signInWithEmailAndPassword(email, password)
+    .then(userCredential => {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('shift-section').style.display = 'block';
+      document.getElementById('user-name').innerText = userCredential.user.email;
+      currentUser = userCredential.user.email.replace(/[.#$\[\]]/g, '_');
+      loadShifts();
+    })
+    .catch(() => {
+      document.getElementById('error-message').innerText = "Credenziali errate. Riprova.";
+    });
+}
 
-    const option2 = document.createElement('option');
-    option2.value = role;
-    option2.textContent = role;
-    filterSelect.appendChild(option2);
-  });
+function logout() {
+  auth.signOut().then(() => location.reload());
+}
 
-  function login() {
-    const email = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorMessage = document.getElementById('error-message');
+function addShift() {
+  const date = document.getElementById('date').value;
+  const startTime = document.getElementById('start-time').value;
+  const endTime = document.getElementById('end-time').value;
+  const role = document.getElementById('role').value;
+  if (!date || !startTime || !endTime || !role) return alert('Compila tutti i campi!');
 
-    auth.signInWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('shift-section').style.display = 'block';
-        document.getElementById('user-name').innerText = user.email;
-        currentUser = user.email.replace(/[.#$\[\]]/g, '_');
-        loadShifts();
-      })
-      .catch((error) => {
-        errorMessage.innerText = "Credenziali errate. Riprova.";
-      });
-  }
-
-  function logout() {
-    auth.signOut().then(() => {
-      location.reload();
+  const shift = { date, startTime, endTime, role };
+  if (editingShiftId) {
+    database.ref('shifts/' + currentUser + '/' + editingShiftId).set(shift).then(() => {
+      editingShiftId = null;
+      clearForm();
+      loadShifts();
+    });
+  } else {
+    const shiftId = database.ref().child('shifts').push().key;
+    database.ref('shifts/' + currentUser + '/' + shiftId).set(shift).then(() => {
+      clearForm();
+      loadShifts();
     });
   }
+}
 
-  function addShift() {
-    const date = document.getElementById('date').value;
-    const startTime = document.getElementById('start-time').value;
-    const endTime = document.getElementById('end-time').value;
-    const role = document.getElementById('role').value;
+function clearForm() {
+  document.getElementById('date').value = '';
+  document.getElementById('start-time').value = '';
+  document.getElementById('end-time').value = '';
+  document.getElementById('role').value = '';
+}
 
-    if (!date || !startTime || !endTime || !role) {
-      alert('Compila tutti i campi!');
-      return;
-    }
+function loadShifts() {
+  shiftTableBody.innerHTML = '';
+  summaryTableBody.innerHTML = '';
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  const sortOrder = document.getElementById('sort-order').value;
 
-    const shift = { date, startTime, endTime, role };
+  database.ref('shifts/' + currentUser).once('value').then(snapshot => {
+    let shifts = snapshot.val();
+    if (shifts) {
+      let shiftsArray = Object.entries(shifts).map(([id, shift]) => ({ id, ...shift }));
+      if (startDate) shiftsArray = shiftsArray.filter(shift => new Date(shift.date) >= new Date(startDate));
+      if (endDate) shiftsArray = shiftsArray.filter(shift => new Date(shift.date) <= new Date(endDate));
+      shiftsArray.sort((a, b) => sortOrder === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date));
 
-    if (currentUser) {
-      if (editingShiftId) {
-        database.ref('shifts/' + currentUser + '/' + editingShiftId).set(shift)
-          .then(() => {
-            alert("Turno aggiornato!");
-            editingShiftId = null;
-            clearForm();
-            loadShifts();
-          });
-      } else {
-        const shiftId = database.ref().child('shifts').push().key;
-        database.ref('shifts/' + currentUser + '/' + shiftId).set(shift)
-          .then(() => {
-            clearForm();
-            loadShifts();
-          });
+      const hoursByRole = {};
+      shiftsArray.forEach(shift => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${shift.date}</td>
+          <td>${shift.startTime}</td>
+          <td>${shift.endTime}</td>
+          <td>${shift.role}</td>
+          <td>
+            <button onclick="editShift('${shift.id}')">Modifica</button>
+            <button onclick="deleteShift('${shift.id}')" style="background-color:red;color:white;">Elimina</button>
+          </td>`;
+        shiftTableBody.appendChild(row);
+
+        const start = parseTime(shift.startTime);
+        const end = parseTime(shift.endTime);
+        let diffHours = (end - start) / (1000 * 60 * 60);
+        if (diffHours < 0) diffHours += 24;
+        if (!hoursByRole[shift.role]) hoursByRole[shift.role] = 0;
+        hoursByRole[shift.role] += diffHours;
+      });
+
+      for (const role in hoursByRole) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${role}</td><td>${hoursByRole[role].toFixed(2)} ore</td>`;
+        summaryTableBody.appendChild(row);
       }
     }
-  }
+  });
+}
 
-  function clearForm() {
-    document.getElementById('date').value = '';
-    document.getElementById('start-time').value = '';
-    document.getElementById('end-time').value = '';
-    document.getElementById('role').value = '';
-  }
+function parseTime(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
 
-  function loadShifts() {
-    shiftTableBody.innerHTML = '';
-    summaryTableBody.innerHTML = '';
-
-    database.ref('shifts/' + currentUser).once('value')
-      .then((snapshot) => {
-        const shifts = snapshot.val();
-        if (shifts) {
-          let shiftsArray = Object.entries(shifts).map(([id, shift]) => ({ id, ...shift }));
-
-          // Ordinamento per data
-          shiftsArray.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-          // Filtra per mansione se selezionato
-          const selectedRole = filterSelect.value;
-          if (selectedRole) {
-            shiftsArray = shiftsArray.filter(shift => shift.role === selectedRole);
-          }
-
-          // Per calcolo ore totali
-          const hoursByRole = {};
-
-          shiftsArray.forEach(shift => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${shift.date}</td>
-              <td>${shift.startTime}</td>
-              <td>${shift.endTime}</td>
-              <td>${shift.role}</td>
-              <td>
-                <button onclick="editShift('${shift.id}')">Modifica</button>
-                <button onclick="deleteShift('${shift.id}')" style="background-color: red; color: white;">Elimina</button>
-              </td>
-            `;
-            shiftTableBody.appendChild(row);
-
-            // Calcolo ore lavorate
-            const start = parseTime(shift.startTime);
-            const end = parseTime(shift.endTime);
-            let diffHours = (end - start) / (1000 * 60 * 60);
-            if (diffHours < 0) diffHours += 24; // gestire eventuale turno notturno
-
-            if (!hoursByRole[shift.role]) hoursByRole[shift.role] = 0;
-            hoursByRole[shift.role] += diffHours;
-          });
-
-          // Aggiorna tabella riepilogo ore
-          for (const role in hoursByRole) {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${role}</td><td>${hoursByRole[role].toFixed(2)} ore</td>`;
-            summaryTableBody.appendChild(row);
-          }
-        }
-      });
-  }
-
-  function parseTime(timeStr) {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-    return date;
-  }
-
-  function editShift(id) {
-    database.ref('shifts/' + currentUser + '/' + id).once('value')
-      .then((snapshot) => {
-        const shift = snapshot.val();
-        if (shift) {
-          document.getElementById('date').value = shift.date;
-          document.getElementById('start-time').value = shift.startTime;
-          document.getElementById('end-time').value = shift.endTime;
-          document.getElementById('role').value = shift.role;
-          editingShiftId = id;
-        }
-      });
-  }
-
-  function deleteShift(id) {
-    if (confirm("Sei sicuro di voler eliminare questo turno?")) {
-      database.ref('shifts/' + currentUser + '/' + id).remove()
-        .then(() => {
-          alert("Turno eliminato!");
-          loadShifts();
-        });
+function editShift(id) {
+  database.ref('shifts/' + currentUser + '/' + id).once('value').then(snapshot => {
+    const shift = snapshot.val();
+    if (shift) {
+      document.getElementById('date').value = shift.date;
+      document.getElementById('start-time').value = shift.startTime;
+      document.getElementById('end-time').value = shift.endTime;
+      document.getElementById('role').value = shift.role;
+      editingShiftId = id;
     }
+  });
+}
+
+function deleteShift(id) {
+  if (confirm("Sei sicuro di voler eliminare questo turno?")) {
+    database.ref('shifts/' + currentUser + '/' + id).remove().then(() => loadShifts());
   }
+}
 
-  function sendResetEmail() {
-    const email = document.getElementById('reset-email').value.trim();
-    const resetMessage = document.getElementById('reset-message');
+function sendResetEmail() {
+  const email = document.getElementById('reset-email').value.trim();
+  firebase.auth().sendPasswordResetEmail(email)
+    .then(() => document.getElementById('reset-message').innerText = "Email inviata!")
+    .catch(error => document.getElementById('reset-message').innerText = error.message);
+}
 
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(() => {
-        resetMessage.innerText = "Email inviata. Controlla la tua casella.";
-        resetMessage.style.color = "green";
-      })
-      .catch((error) => {
-        resetMessage.innerText = "Errore: " + error.message;
-        resetMessage.style.color = "red";
-      });
-  }
+function changePassword() {
+  const user = firebase.auth().currentUser;
+  const oldPassword = document.getElementById('old-password').value.trim();
+  const newPassword = document.getElementById('new-password').value.trim();
+  const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
 
-  function changePassword() {
-    const user = firebase.auth().currentUser;
-    const oldPassword = document.getElementById('old-password').value.trim();
-    const newPassword = document.getElementById('new-password').value.trim();
-    const passwordMessage = document.getElementById('password-message');
-
-    if (!oldPassword || !newPassword) {
-      passwordMessage.innerText = "Compila entrambi i campi.";
-      passwordMessage.style.color = "red";
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      passwordMessage.innerText = "La nuova password deve avere almeno 6 caratteri.";
-      passwordMessage.style.color = "red";
-      return;
-    }
-
-    const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
-
-    user.reauthenticateWithCredential(credential)
-      .then(() => {
-        user.updatePassword(newPassword)
-          .then(() => {
-            passwordMessage.innerText = "Password cambiata!";
-            passwordMessage.style.color = "green";
-            document.getElementById('old-password').value = '';
-            document.getElementById('new-password').value = '';
-          })
-          .catch((error) => {
-            passwordMessage.innerText = "Errore: " + error.message;
-            passwordMessage.style.color = "red";
-          });
-      })
-      .catch((error) => {
-        passwordMessage.innerText = "Vecchia password errata.";
-        passwordMessage.style.color = "red";
-      });
-  }
+  user.reauthenticateWithCredential(credential)
+    .then(() => user.updatePassword(newPassword).then(() => {
+      document.getElementById('password-message').innerText = "Password cambiata!";
+    }))
+    .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
+}
 </script>
-  
+
+</body>
+</html>
