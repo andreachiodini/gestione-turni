@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestione Turni Collaboratori</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #cccccc;
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gestione Turni</h1>
+
+  <div class="form-group">
+    <label for="date">Data</label>
+    <input type="date" id="date">
+  </div>
+
+  <div class="form-group">
+    <label for="start-time">Ora Inizio</label>
+    <input type="time" id="start-time">
+  </div>
+
+  <div class="form-group">
+    <label for="end-time">Ora Fine</label>
+    <input type="time" id="end-time">
+  </div>
+
+  <div class="form-group">
+    <label for="role">Mansione</label>
+    <select id="role">
+      <option value="Assistente Bagnanti">Assistente Bagnanti</option>
+      <option value="Istruttore">Istruttore</option>
+      <option value="Aiuto Allenatore">Aiuto Allenatore</option>
+      <option value="Segreteria">Segreteria</option>
+      <option value="Cassa">Cassa</option>
+      <!-- Qui puoi aggiungere altre mansioni -->
+    </select>
+  </div>
+
+  <button onclick="addShift()">Aggiungi Turno</button>
+
+  <table id="shift-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Ora Inizio</th>
+        <th>Ora Fine</th>
+        <th>Mansione</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Turni aggiunti -->
+    </tbody>
+  </table>
+
+  <script>
+    const shiftTableBody = document.querySelector('#shift-table tbody');
+
+    function addShift() {
+      const date = document.getElementById('date').value;
+      const startTime = document.getElementById('start-time').value;
+      const endTime = document.getElementById('end-time').value;
+      const role = document.getElementById('role').value;
+
+      if (date && startTime && endTime && role) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${date}</td>
+          <td>${startTime}</td>
+          <td>${endTime}</td>
+          <td>${role}</td>
+        `;
+        shiftTableBody.appendChild(row);
+
+        saveShift({ date, startTime, endTime, role });
+      } else {
+        alert('Compila tutti i campi!');
+      }
+    }
+
+    function saveShift(shift) {
+      let shifts = JSON.parse(localStorage.getItem('shifts')) || [];
+      shifts.push(shift);
+      localStorage.setItem('shifts', JSON.stringify(shifts));
+    }
+
+    function loadShifts() {
+      const shifts = JSON.parse(localStorage.getItem('shifts')) || [];
+      shifts.forEach(shift => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${shift.date}</td>
+          <td>${shift.startTime}</td>
+          <td>${shift.endTime}</td>
+          <td>${shift.role}</td>
+        `;
+        shiftTableBody.appendChild(row);
+      });
+    }
+
+    window.onload = loadShifts;
+  </script>
+
+</body>
+</html>
