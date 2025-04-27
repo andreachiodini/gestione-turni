@@ -54,7 +54,7 @@
   <div id="error-message"></div>
 </div>
 
-<!-- Shift Section (hidden at start) -->
+<!-- Shift Section -->
 <div id="shift-section" style="display:none;">
   <h2>Benvenuto, <span id="user-name"></span>!</h2>
 
@@ -81,7 +81,6 @@
       <option value="Aiuto Allenatore">Aiuto Allenatore</option>
       <option value="Segreteria">Segreteria</option>
       <option value="Cassa">Cassa</option>
-      <!-- Aggiungi altre mansioni se vuoi -->
     </select>
   </div>
 
@@ -98,13 +97,12 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Turni aggiunti -->
+      <!-- Qui appaiono i turni -->
     </tbody>
   </table>
 </div>
-
 <script>
-  // Firebase Config
+  // Firebase Config tuo
   const firebaseConfig = {
     apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
     authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -115,10 +113,10 @@
     measurementId: "G-Y19TG637V9"
   };
 
-  // Inizializza Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-
+</script>
+<script>
   let currentUser = "";
 
   function login() {
@@ -132,7 +130,7 @@
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('shift-section').style.display = 'block';
         document.getElementById('user-name').innerText = user.email;
-        currentUser = user.email.replace('.', '_'); // usiamo email come ID unico
+        currentUser = user.email.replace('.', '_');
         loadShifts();
       })
       .catch((error) => {
