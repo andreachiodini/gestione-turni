@@ -98,11 +98,6 @@
 </div>
 
 <script>
-// (ATTENZIONE: Nella prossima risposta ti metto tutto il JavaScript completo)
-</script>
-
-</body>
-</html>
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
@@ -184,7 +179,7 @@ function changePassword() {
   const oldPassword = document.getElementById('old-password').value.trim();
   const newPassword = document.getElementById('new-password').value.trim();
   const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
-  
+
   user.reauthenticateWithCredential(credential)
     .then(() => user.updatePassword(newPassword).then(() => {
       document.getElementById('password-message').innerText = "Password cambiata!";
@@ -300,7 +295,7 @@ function deleteShift(id) {
   }
 }
 
-// Canvas Firma
+// Firma digitale Canvas
 canvas.addEventListener('mousedown', () => drawing = true);
 canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
 canvas.addEventListener('mousemove', e => {
@@ -313,6 +308,7 @@ canvas.addEventListener('mousemove', e => {
   ctx.beginPath();
   ctx.moveTo(e.offsetX, e.offsetY);
 });
+
 function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
@@ -360,3 +356,6 @@ async function exportPDF() {
   doc.save(fileName);
 }
 </script>
+
+</body>
+</html>
