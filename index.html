@@ -5,7 +5,7 @@
   <title>Gestione Turni Collaboratori</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Firebase Core SDK -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
@@ -56,7 +56,6 @@
 
 <body>
 <h1>Gestione Turni Collaboratori</h1>
-
 <!-- Login Form -->
 <div id="login-form">
   <h2>Accedi</h2>
@@ -97,7 +96,15 @@
   <button onclick="addShift()">Aggiungi / Salva Modifica</button>
   <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
-  <!-- Filtro per data -->
+  <!-- Filtro per MANSIONE -->
+  <div style="margin-top:20px;">
+    <h3>Filtra Turni per Mansione</h3>
+    <select id="filter-role" onchange="loadShifts()">
+      <option value="">Tutte le mansioni</option>
+    </select>
+  </div>
+
+  <!-- Filtro per DATA -->
   <div style="margin-top:20px;">
     <h3>Filtra Turni per Data</h3>
     <label for="start-date">Data Inizio</label>
@@ -106,7 +113,7 @@
     <input type="date" id="end-date" onchange="loadShifts()">
   </div>
 
-  <!-- Filtro Ordinamento -->
+  <!-- Filtro per ORDINAMENTO -->
   <div style="margin-top:20px;">
     <h3>Ordinamento Turni</h3>
     <select id="sort-order" onchange="loadShifts()">
@@ -115,6 +122,7 @@
     </select>
   </div>
 
+  <!-- TABELLA Turni -->
   <table id="shift-table">
     <thead>
       <tr>
@@ -128,7 +136,7 @@
     <tbody></tbody>
   </table>
 
-  <!-- Riepilogo Ore -->
+  <!-- RIEPILOGO Ore Totali -->
   <div class="summary-table">
     <h3>Ore Lavorate per Mansione</h3>
     <table id="summary-table">
@@ -139,6 +147,7 @@
     </table>
   </div>
 
+  <!-- Cambio Password -->
   <details>
     <summary>Cambia la tua password</summary>
     <div style="margin-top: 10px;">
@@ -149,7 +158,6 @@
     </div>
   </details>
 </div>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
@@ -161,6 +169,7 @@ const firebaseConfig = {
   appId: "1:1067061975120:web:8ccfb053119c3d15329955",
   measurementId: "G-Y19TG637V9"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
@@ -170,6 +179,7 @@ let editingShiftId = null;
 const shiftTableBody = document.querySelector('#shift-table tbody');
 const summaryTableBody = document.querySelector('#summary-table tbody');
 const roleSelect = document.getElementById('role');
+const filterRoleSelect = document.getElementById('filter-role');
 
 const mansions = [
   "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO",
@@ -182,11 +192,18 @@ const mansions = [
   "Segreteria FERIALE", "Segreteria FESTIVO", "Coordinatore FERIALE", "Coordinatore FESTIVO",
   "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
 ];
+
+// Carico mansioni nei 2 select
 mansions.forEach(role => {
-  const option = document.createElement('option');
-  option.value = role;
-  option.textContent = role;
-  roleSelect.appendChild(option);
+  const option1 = document.createElement('option');
+  option1.value = role;
+  option1.textContent = role;
+  roleSelect.appendChild(option1);
+
+  const option2 = document.createElement('option');
+  option2.value = role;
+  option2.textContent = role;
+  filterRoleSelect.appendChild(option2);
 });
 
 function login() {
@@ -245,13 +262,19 @@ function loadShifts() {
   const startDate = document.getElementById('start-date').value;
   const endDate = document.getElementById('end-date').value;
   const sortOrder = document.getElementById('sort-order').value;
+  const selectedRole = document.getElementById('filter-role').value;
 
   database.ref('shifts/' + currentUser).once('value').then(snapshot => {
     let shifts = snapshot.val();
     if (shifts) {
       let shiftsArray = Object.entries(shifts).map(([id, shift]) => ({ id, ...shift }));
+
+      // Filtri
       if (startDate) shiftsArray = shiftsArray.filter(shift => new Date(shift.date) >= new Date(startDate));
       if (endDate) shiftsArray = shiftsArray.filter(shift => new Date(shift.date) <= new Date(endDate));
+      if (selectedRole) shiftsArray = shiftsArray.filter(shift => shift.role === selectedRole);
+
+      // Ordinamento
       shiftsArray.sort((a, b) => sortOrder === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date));
 
       const hoursByRole = {};
@@ -331,6 +354,3 @@ function changePassword() {
     .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
 }
 </script>
-
-</body>
-</html>
