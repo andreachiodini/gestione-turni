@@ -117,7 +117,7 @@
     </tbody>
   </table>
 
-  <!-- Cambio Password Section a tendina -->
+  <!-- Cambio Password Section -->
   <details>
     <summary>Cambia la tua password</summary>
     <div style="margin-top: 10px;">
@@ -160,9 +160,9 @@
         document.getElementById('shift-section').style.display = 'block';
         document.getElementById('user-name').innerText = user.email;
         
-        currentUser = user.email.replace('.', '_');
+        // Correzione: pulizia email
+        currentUser = user.email.replace(/[.#$\[\]]/g, '_');
 
-        // ⚡ Carica i turni da Firebase
         loadShifts();
       })
       .catch((error) => {
@@ -184,23 +184,33 @@
     const endTime = document.getElementById('end-time').value;
     const role = document.getElementById('role').value;
 
-    if (date && startTime && endTime && role) {
-      const shift = { date, startTime, endTime, role };
-      const shiftId = database.ref().child('shifts').push().key;
-      database.ref('shifts/' + currentUser + '/' + shiftId).set(shift);
-
-      // aggiorna subito la tabella
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${date}</td>
-        <td>${startTime}</td>
-        <td>${endTime}</td>
-        <td>${role}</td>
-      `;
-      shiftTableBody.appendChild(row);
-
-    } else {
+    if (!date || !startTime || !endTime || !role) {
       alert('Compila tutti i campi!');
+      return;
+    }
+
+    const shift = { date, startTime, endTime, role };
+
+    if (currentUser) {
+      const shiftId = database.ref().child('shifts').push().key;
+      database.ref('shifts/' + currentUser + '/' + shiftId).set(shift)
+        .then(() => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${date}</td>
+            <td>${startTime}</td>
+            <td>${endTime}</td>
+            <td>${role}</td>
+          `;
+          shiftTableBody.appendChild(row);
+          console.log("Turno aggiunto correttamente su Firebase");
+        })
+        .catch((error) => {
+          console.error("Errore nel salvataggio su Firebase:", error.message);
+          alert("Errore nel salvataggio. Controlla la connessione o le regole del database.");
+        });
+    } else {
+      alert("Utente non identificato. Ricarica e rifai login.");
     }
   }
 
