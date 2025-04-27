@@ -100,7 +100,7 @@
     </select>
   </div>
 
-  <button onclick="addShift()">Aggiungi Turno</button>
+  <button onclick="addShift()">Aggiungi / Salva Modifica</button>
   <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
   <table id="shift-table">
@@ -110,6 +110,7 @@
         <th>Ora Inizio</th>
         <th>Ora Fine</th>
         <th>Mansione</th>
+        <th>Azioni</th>
       </tr>
     </thead>
     <tbody>
@@ -130,11 +131,10 @@
 </div>
 
 <script>
-  // Firebase Config CORRETTO
   const firebaseConfig = {
     apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
     authDomain: "gestione-turni-50fc4.firebaseapp.com",
-    databaseURL: "https://gestione-turni-50fc4-default-rtdb.europe-west1.firebasedatabase.app", // <- Aggiunto!
+    databaseURL: "https://gestione-turni-50fc4-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "gestione-turni-50fc4",
     storageBucket: "gestione-turni-50fc4.appspot.com",
     messagingSenderId: "1067061975120",
@@ -147,6 +147,7 @@
   const database = firebase.database();
 
   let currentUser = "";
+  let editingShiftId = null;
   const shiftTableBody = document.querySelector('#shift-table tbody');
 
   function login() {
@@ -160,10 +161,7 @@
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('shift-section').style.display = 'block';
         document.getElementById('user-name').innerText = user.email;
-        
-        // Pulisce l'email per usarla come chiave Firebase
         currentUser = user.email.replace(/[.#$\[\]]/g, '_');
-
         loadShifts();
       })
       .catch((error) => {
@@ -193,26 +191,32 @@
     const shift = { date, startTime, endTime, role };
 
     if (currentUser) {
-      const shiftId = database.ref().child('shifts').push().key;
-      database.ref('shifts/' + currentUser + '/' + shiftId).set(shift)
-        .then(() => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${date}</td>
-            <td>${startTime}</td>
-            <td>${endTime}</td>
-            <td>${role}</td>
-          `;
-          shiftTableBody.appendChild(row);
-          console.log("Turno salvato correttamente su Firebase");
-        })
-        .catch((error) => {
-          console.error("Errore di salvataggio:", error.message);
-          alert("Errore nel salvataggio. Controlla la connessione o le regole database.");
-        });
-    } else {
-      alert("Utente non identificato. Ricarica la pagina e rifai il login.");
+      if (editingShiftId) {
+        // Modifica turno esistente
+        database.ref('shifts/' + currentUser + '/' + editingShiftId).set(shift)
+          .then(() => {
+            alert("Turno aggiornato!");
+            editingShiftId = null;
+            clearForm();
+            loadShifts();
+          });
+      } else {
+        // Nuovo turno
+        const shiftId = database.ref().child('shifts').push().key;
+        database.ref('shifts/' + currentUser + '/' + shiftId).set(shift)
+          .then(() => {
+            clearForm();
+            loadShifts();
+          });
+      }
     }
+  }
+
+  function clearForm() {
+    document.getElementById('date').value = '';
+    document.getElementById('start-time').value = '';
+    document.getElementById('end-time').value = '';
+    document.getElementById('role').value = '';
   }
 
   function loadShifts() {
@@ -222,21 +226,49 @@
       .then((snapshot) => {
         const shifts = snapshot.val();
         if (shifts) {
-          Object.values(shifts).forEach(shift => {
+          Object.entries(shifts).forEach(([id, shift]) => {
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>${shift.date}</td>
               <td>${shift.startTime}</td>
               <td>${shift.endTime}</td>
               <td>${shift.role}</td>
+              <td>
+                <button onclick="editShift('${id}')">Modifica</button>
+                <button onclick="deleteShift('${id}')" style="background-color: red; color: white;">Elimina</button>
+              </td>
             `;
             shiftTableBody.appendChild(row);
           });
         }
-      })
-      .catch((error) => {
-        console.error('Errore caricamento turni:', error.message);
       });
+  }
+
+  function editShift(id) {
+    database.ref('shifts/' + currentUser + '/' + id).once('value')
+      .then((snapshot) => {
+        const shift = snapshot.val();
+        if (shift) {
+          document.getElementById('date').value = shift.date;
+          document.getElementById('start-time').value = shift.startTime;
+          document.getElementById('end-time').value = shift.endTime;
+          document.getElementById('role').value = shift.role;
+          editingShiftId = id;
+        }
+      });
+  }
+
+  function deleteShift(id) {
+    if (confirm("Sei sicuro di voler eliminare questo turno?")) {
+      database.ref('shifts/' + currentUser + '/' + id).remove()
+        .then(() => {
+          alert("Turno eliminato!");
+          loadShifts();
+        })
+        .catch((error) => {
+          console.error('Errore durante l\'eliminazione:', error.message);
+        });
+    }
   }
 
   function changePassword() {
@@ -257,10 +289,7 @@
       return;
     }
 
-    const credential = firebase.auth.EmailAuthProvider.credential(
-      user.email,
-      oldPassword
-    );
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
 
     user.reauthenticateWithCredential(credential)
       .then(() => {
