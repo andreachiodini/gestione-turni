@@ -121,6 +121,7 @@
   <details>
     <summary>Cambia la tua password</summary>
     <div style="margin-top: 10px;">
+      <input type="password" id="old-password" placeholder="Vecchia Password">
       <input type="password" id="new-password" placeholder="Nuova Password">
       <button onclick="changePassword()">Conferma Cambio Password</button>
       <div id="password-message"></div>
@@ -228,8 +229,15 @@
 
   function changePassword() {
     const user = firebase.auth().currentUser;
+    const oldPassword = document.getElementById('old-password').value.trim();
     const newPassword = document.getElementById('new-password').value.trim();
     const passwordMessage = document.getElementById('password-message');
+
+    if (!oldPassword || !newPassword) {
+      passwordMessage.innerText = "Compila entrambi i campi.";
+      passwordMessage.style.color = "red";
+      return;
+    }
 
     if (newPassword.length < 6) {
       passwordMessage.innerText = "La nuova password deve avere almeno 6 caratteri.";
@@ -237,14 +245,29 @@
       return;
     }
 
-    user.updatePassword(newPassword).then(() => {
-      passwordMessage.innerText = "Password cambiata con successo!";
-      passwordMessage.style.color = "green";
-      document.getElementById('new-password').value = '';
-    }).catch((error) => {
-      passwordMessage.innerText = "Errore: " + error.message;
-      passwordMessage.style.color = "red";
-    });
+    const credential = firebase.auth.EmailAuthProvider.credential(
+      user.email,
+      oldPassword
+    );
+
+    user.reauthenticateWithCredential(credential)
+      .then(() => {
+        user.updatePassword(newPassword)
+          .then(() => {
+            passwordMessage.innerText = "Password cambiata con successo!";
+            passwordMessage.style.color = "green";
+            document.getElementById('old-password').value = '';
+            document.getElementById('new-password').value = '';
+          })
+          .catch((error) => {
+            passwordMessage.innerText = "Errore nel cambio: " + error.message;
+            passwordMessage.style.color = "red";
+          });
+      })
+      .catch((error) => {
+        passwordMessage.innerText = "Vecchia password errata.";
+        passwordMessage.style.color = "red";
+      });
   }
 
   function sendResetEmail() {
