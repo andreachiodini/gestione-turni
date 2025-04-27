@@ -7,8 +7,8 @@
   
   <!-- Firebase App (Core) -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <!-- Firebase Authentication -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
   <style>
     body {
@@ -35,7 +35,7 @@
       padding: 8px;
       text-align: center;
     }
-    #error-message {
+    #error-message, #password-message, #reset-message {
       color: red;
       margin-top: 10px;
     }
@@ -52,6 +52,14 @@
   <input type="password" id="password" placeholder="Password">
   <button onclick="login()">Accedi</button>
   <div id="error-message"></div>
+
+  <!-- Reset Password Section -->
+  <div id="reset-password-section" style="margin-top: 30px;">
+    <h3>Password dimenticata?</h3>
+    <input type="email" id="reset-email" placeholder="Inserisci la tua email">
+    <button onclick="sendResetEmail()">Invia Email di Reset</button>
+    <div id="reset-message"></div>
+  </div>
 </div>
 
 <!-- Shift Section -->
@@ -97,12 +105,21 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Qui appaiono i turni -->
+      <!-- Turni aggiunti -->
     </tbody>
   </table>
+
+  <!-- Cambio Password Section -->
+  <div id="change-password-section" style="margin-top: 30px;">
+    <h3>Cambia Password</h3>
+    <input type="password" id="new-password" placeholder="Nuova Password">
+    <button onclick="changePassword()">Conferma Cambio Password</button>
+    <div id="password-message"></div>
+  </div>
 </div>
+
 <script>
-  // Firebase Config tuo
+  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
     authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -115,8 +132,8 @@
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-</script>
-<script>
+  const database = firebase.database();
+
   let currentUser = "";
 
   function login() {
@@ -174,20 +191,66 @@
     let shifts = JSON.parse(localStorage.getItem('shifts_' + currentUser)) || [];
     shifts.push(shift);
     localStorage.setItem('shifts_' + currentUser, JSON.stringify(shifts));
+
+    // Salva anche su Firebase Database
+    const shiftId = database.ref().child('shifts').push().key;
+    database.ref('shifts/' + currentUser + '/' + shiftId).set(shift);
   }
 
   function loadShifts() {
-    const shifts = JSON.parse(localStorage.getItem('shifts_' + currentUser)) || [];
-    shifts.forEach(shift => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${shift.date}</td>
-        <td>${shift.startTime}</td>
-        <td>${shift.endTime}</td>
-        <td>${shift.role}</td>
-      `;
-      shiftTableBody.appendChild(row);
+    shiftTableBody.innerHTML = '';
+
+    database.ref('shifts/' + currentUser).once('value', (snapshot) => {
+      const shifts = snapshot.val();
+      if (shifts) {
+        Object.values(shifts).forEach(shift => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${shift.date}</td>
+            <td>${shift.startTime}</td>
+            <td>${shift.endTime}</td>
+            <td>${shift.role}</td>
+          `;
+          shiftTableBody.appendChild(row);
+        });
+      }
     });
+  }
+
+  function changePassword() {
+    const user = firebase.auth().currentUser;
+    const newPassword = document.getElementById('new-password').value.trim();
+    const passwordMessage = document.getElementById('password-message');
+
+    if (newPassword.length < 6) {
+      passwordMessage.innerText = "La nuova password deve avere almeno 6 caratteri.";
+      passwordMessage.style.color = "red";
+      return;
+    }
+
+    user.updatePassword(newPassword).then(() => {
+      passwordMessage.innerText = "Password cambiata con successo!";
+      passwordMessage.style.color = "green";
+      document.getElementById('new-password').value = '';
+    }).catch((error) => {
+      passwordMessage.innerText = "Errore: " + error.message;
+      passwordMessage.style.color = "red";
+    });
+  }
+
+  function sendResetEmail() {
+    const email = document.getElementById('reset-email').value.trim();
+    const resetMessage = document.getElementById('reset-message');
+
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(() => {
+        resetMessage.innerText = "Email di reset inviata! Controlla la tua casella.";
+        resetMessage.style.color = "green";
+      })
+      .catch((error) => {
+        resetMessage.innerText = "Errore: " + error.message;
+        resetMessage.style.color = "red";
+      });
   }
 </script>
 
