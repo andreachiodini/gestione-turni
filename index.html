@@ -17,7 +17,7 @@
       text-align: center;
     }
     #login-form, #shift-section {
-      max-width: 400px;
+      max-width: 600px;
       margin: 0 auto;
     }
     input, select, button {
@@ -47,11 +47,14 @@
       background-color: #f0f0f0;
       border-radius: 5px;
     }
+    .summary-table {
+      margin-top: 30px;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
-
-<h1>Gestione Turni Collaboratori</h1>
+  <h1>Gestione Turni Collaboratori</h1>
 
 <!-- Login Form -->
 <div id="login-form">
@@ -74,6 +77,7 @@
 <div id="shift-section" style="display:none;">
   <h2>Benvenuto, <span id="user-name"></span>!</h2>
 
+  <!-- Form Aggiunta Turno -->
   <div class="form-group">
     <label for="date">Data</label>
     <input type="date" id="date">
@@ -92,41 +96,23 @@
   <div class="form-group">
     <label for="role">Mansione</label>
     <select id="role">
-  <option value="Assistente bagnanti FERIALE">Assistente bagnanti FERIALE</option>
-  <option value="Assistente bagnanti FESTIVO">Assistente bagnanti FESTIVO</option>
-  <option value="Cassa FERIALE">Cassa FERIALE</option>
-  <option value="Cassa FESTIVO">Cassa FESTIVO</option>
-  <option value="Rotazione FERIALE">Rotazione FERIALE</option>
-  <option value="Rotazione FESTIVO">Rotazione FESTIVO</option>
-  <option value="Istruttore FERIALE">Istruttore FERIALE</option>
-  <option value="Istruttore FESTIVO">Istruttore FESTIVO</option>
-  <option value="Aiuto allenatore FERIALE">Aiuto allenatore FERIALE</option>
-  <option value="Aiuto allenatore FESTIVO">Aiuto allenatore FESTIVO</option>
-  <option value="Sincro/Pallan FERIALE">Sincro/Pallan FERIALE</option>
-  <option value="Sincro/Pallan FESTIVO">Sincro/Pallan FESTIVO</option>
-  <option value="Acquagym FERIALE">Acquagym FERIALE</option>
-  <option value="Acquagym FESTIVO">Acquagym FESTIVO</option>
-  <option value="Baby istruttore FERIALE">Baby istruttore FERIALE</option>
-  <option value="Baby istruttore FESTIVO">Baby istruttore FESTIVO</option>
-  <option value="Baby aiuto allenatore FERIALE">Baby aiuto allenatore FERIALE</option>
-  <option value="Baby aiuto allenatore FESTIVO">Baby aiuto allenatore FESTIVO</option>
-  <option value="Neonatale">Neonatale FERIALE</option>
-  <option value="Preparto">Preparto FERIALE</option>
-  <option value="Lezione individuale FERIALE">Lezione individuale FERIALE</option>
-  <option value="Lezione individuale FESTIVO">Lezione individuale FESTIVO</option>
-  <option value="Propaganda FERIALE">Propaganda FERIALE</option>
-  <option value="Propaganda FESTIVO">Propaganda FESTIVO</option>
-  <option value="Segreteria FERIALE">Segreteria FERIALE</option>
-  <option value="Segreteria FESTIVO">Segreteria FESTIVO</option>
-  <option value="Coordinatore">Coordinatore FERIALE</option>
-  <option value="Aquagol/Salvamento FERIALE">Aquagol/Salvamento FERIALE</option>
-  <option value="Aquagol/Salvamento FESTIVO">Aquagol/Salvamento FESTIVO</option>
-</select>
+      <!-- (Tra poco ti incollo anche qui tutte le mansioni complete!) -->
+    </select>
   </div>
 
   <button onclick="addShift()">Aggiungi / Salva Modifica</button>
   <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
+  <!-- Filtro per mansione -->
+  <div style="margin-top:20px;">
+    <h3>Filtra Turni per Mansione</h3>
+    <select id="filter-role" onchange="loadShifts()">
+      <option value="">Tutte le Mansioni</option>
+      <!-- (Anche qui caricheremo mansioni dinamicamente) -->
+    </select>
+  </div>
+
+  <!-- Tabella Turni -->
   <table id="shift-table">
     <thead>
       <tr>
@@ -142,6 +128,22 @@
     </tbody>
   </table>
 
+  <!-- Riepilogo Ore Totali -->
+  <div class="summary-table">
+    <h3>Ore Lavorate per Mansione</h3>
+    <table id="summary-table">
+      <thead>
+        <tr>
+          <th>Mansione</th>
+          <th>Ore Totali</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Riepilogo caricato -->
+      </tbody>
+    </table>
+  </div>
+
   <!-- Cambio Password Section -->
   <details>
     <summary>Cambia la tua password</summary>
@@ -153,8 +155,7 @@
     </div>
   </details>
 </div>
-
-<script>
+  <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
     authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -173,6 +174,41 @@
   let currentUser = "";
   let editingShiftId = null;
   const shiftTableBody = document.querySelector('#shift-table tbody');
+  const summaryTableBody = document.querySelector('#summary-table tbody');
+  const roleSelect = document.getElementById('role');
+  const filterSelect = document.getElementById('filter-role');
+
+  const mansions = [
+    "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO",
+    "Cassa FERIALE", "Cassa FESTIVO",
+    "Rotazione FERIALE", "Rotazione FESTIVO",
+    "Istruttore FERIALE", "Istruttore FESTIVO",
+    "Aiuto allenatore FERIALE", "Aiuto allenatore FESTIVO",
+    "Sincro/Pallan FERIALE", "Sincro/Pallan FESTIVO",
+    "Acquagym FERIALE", "Acquagym FESTIVO",
+    "Baby istruttore FERIALE", "Baby istruttore FESTIVO",
+    "Baby aiuto allenatore FERIALE", "Baby aiuto allenatore FESTIVO",
+    "Neonatale FERIALE", "Neonatale FESTIVO",
+    "Preparto FERIALE", "Preparto FESTIVO",
+    "Lezione individuale FERIALE", "Lezione individuale FESTIVO",
+    "Propaganda FERIALE", "Propaganda FESTIVO",
+    "Segreteria FERIALE", "Segreteria FESTIVO",
+    "Coordinatore FERIALE", "Coordinatore FESTIVO",
+    "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
+  ];
+
+  // Carichiamo le mansioni nei <select>
+  mansions.forEach(role => {
+    const option1 = document.createElement('option');
+    option1.value = role;
+    option1.textContent = role;
+    roleSelect.appendChild(option1);
+
+    const option2 = document.createElement('option');
+    option2.value = role;
+    option2.textContent = role;
+    filterSelect.appendChild(option2);
+  });
 
   function login() {
     const email = document.getElementById('username').value.trim();
@@ -196,8 +232,6 @@
   function logout() {
     auth.signOut().then(() => {
       location.reload();
-    }).catch((error) => {
-      console.error("Errore di logout", error);
     });
   }
 
@@ -216,7 +250,6 @@
 
     if (currentUser) {
       if (editingShiftId) {
-        // Modifica turno esistente
         database.ref('shifts/' + currentUser + '/' + editingShiftId).set(shift)
           .then(() => {
             alert("Turno aggiornato!");
@@ -225,7 +258,6 @@
             loadShifts();
           });
       } else {
-        // Nuovo turno
         const shiftId = database.ref().child('shifts').push().key;
         database.ref('shifts/' + currentUser + '/' + shiftId).set(shift)
           .then(() => {
@@ -245,12 +277,27 @@
 
   function loadShifts() {
     shiftTableBody.innerHTML = '';
+    summaryTableBody.innerHTML = '';
 
     database.ref('shifts/' + currentUser).once('value')
       .then((snapshot) => {
         const shifts = snapshot.val();
         if (shifts) {
-          Object.entries(shifts).forEach(([id, shift]) => {
+          let shiftsArray = Object.entries(shifts).map(([id, shift]) => ({ id, ...shift }));
+
+          // Ordinamento per data
+          shiftsArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          // Filtra per mansione se selezionato
+          const selectedRole = filterSelect.value;
+          if (selectedRole) {
+            shiftsArray = shiftsArray.filter(shift => shift.role === selectedRole);
+          }
+
+          // Per calcolo ore totali
+          const hoursByRole = {};
+
+          shiftsArray.forEach(shift => {
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>${shift.date}</td>
@@ -258,14 +305,37 @@
               <td>${shift.endTime}</td>
               <td>${shift.role}</td>
               <td>
-                <button onclick="editShift('${id}')">Modifica</button>
-                <button onclick="deleteShift('${id}')" style="background-color: red; color: white;">Elimina</button>
+                <button onclick="editShift('${shift.id}')">Modifica</button>
+                <button onclick="deleteShift('${shift.id}')" style="background-color: red; color: white;">Elimina</button>
               </td>
             `;
             shiftTableBody.appendChild(row);
+
+            // Calcolo ore lavorate
+            const start = parseTime(shift.startTime);
+            const end = parseTime(shift.endTime);
+            let diffHours = (end - start) / (1000 * 60 * 60);
+            if (diffHours < 0) diffHours += 24; // gestire eventuale turno notturno
+
+            if (!hoursByRole[shift.role]) hoursByRole[shift.role] = 0;
+            hoursByRole[shift.role] += diffHours;
           });
+
+          // Aggiorna tabella riepilogo ore
+          for (const role in hoursByRole) {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${role}</td><td>${hoursByRole[role].toFixed(2)} ore</td>`;
+            summaryTableBody.appendChild(row);
+          }
         }
       });
+  }
+
+  function parseTime(timeStr) {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
   }
 
   function editShift(id) {
@@ -288,11 +358,23 @@
         .then(() => {
           alert("Turno eliminato!");
           loadShifts();
-        })
-        .catch((error) => {
-          console.error('Errore durante l\'eliminazione:', error.message);
         });
     }
+  }
+
+  function sendResetEmail() {
+    const email = document.getElementById('reset-email').value.trim();
+    const resetMessage = document.getElementById('reset-message');
+
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(() => {
+        resetMessage.innerText = "Email inviata. Controlla la tua casella.";
+        resetMessage.style.color = "green";
+      })
+      .catch((error) => {
+        resetMessage.innerText = "Errore: " + error.message;
+        resetMessage.style.color = "red";
+      });
   }
 
   function changePassword() {
@@ -334,22 +416,5 @@
         passwordMessage.style.color = "red";
       });
   }
-
-  function sendResetEmail() {
-    const email = document.getElementById('reset-email').value.trim();
-    const resetMessage = document.getElementById('reset-message');
-
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(() => {
-        resetMessage.innerText = "Email inviata. Controlla la casella.";
-        resetMessage.style.color = "green";
-      })
-      .catch((error) => {
-        resetMessage.innerText = "Errore: " + error.message;
-        resetMessage.style.color = "red";
-      });
-  }
 </script>
-
-</body>
-</html>
+  
