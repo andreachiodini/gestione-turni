@@ -113,7 +113,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Turni aggiunti -->
+      <!-- Turni caricati -->
     </tbody>
   </table>
 
@@ -146,6 +146,7 @@
   const database = firebase.database();
 
   let currentUser = "";
+  const shiftTableBody = document.querySelector('#shift-table tbody');
 
   function login() {
     const email = document.getElementById('username').value.trim();
@@ -158,7 +159,10 @@
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('shift-section').style.display = 'block';
         document.getElementById('user-name').innerText = user.email;
+        
         currentUser = user.email.replace('.', '_');
+
+        // ⚡ Carica i turni da Firebase
         loadShifts();
       })
       .catch((error) => {
@@ -174,8 +178,6 @@
     });
   }
 
-  const shiftTableBody = document.querySelector('#shift-table tbody');
-
   function addShift() {
     const date = document.getElementById('date').value;
     const startTime = document.getElementById('start-time').value;
@@ -183,6 +185,11 @@
     const role = document.getElementById('role').value;
 
     if (date && startTime && endTime && role) {
+      const shift = { date, startTime, endTime, role };
+      const shiftId = database.ref().child('shifts').push().key;
+      database.ref('shifts/' + currentUser + '/' + shiftId).set(shift);
+
+      // aggiorna subito la tabella
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${date}</td>
@@ -192,39 +199,33 @@
       `;
       shiftTableBody.appendChild(row);
 
-      saveShift({ date, startTime, endTime, role });
     } else {
       alert('Compila tutti i campi!');
     }
   }
 
-  function saveShift(shift) {
-    let shifts = JSON.parse(localStorage.getItem('shifts_' + currentUser)) || [];
-    shifts.push(shift);
-    localStorage.setItem('shifts_' + currentUser, JSON.stringify(shifts));
-
-    const shiftId = database.ref().child('shifts').push().key;
-    database.ref('shifts/' + currentUser + '/' + shiftId).set(shift);
-  }
-
   function loadShifts() {
     shiftTableBody.innerHTML = '';
 
-    database.ref('shifts/' + currentUser).once('value', (snapshot) => {
-      const shifts = snapshot.val();
-      if (shifts) {
-        Object.values(shifts).forEach(shift => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${shift.date}</td>
-            <td>${shift.startTime}</td>
-            <td>${shift.endTime}</td>
-            <td>${shift.role}</td>
-          `;
-          shiftTableBody.appendChild(row);
-        });
-      }
-    });
+    database.ref('shifts/' + currentUser).once('value')
+      .then((snapshot) => {
+        const shifts = snapshot.val();
+        if (shifts) {
+          Object.values(shifts).forEach(shift => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${shift.date}</td>
+              <td>${shift.startTime}</td>
+              <td>${shift.endTime}</td>
+              <td>${shift.role}</td>
+            `;
+            shiftTableBody.appendChild(row);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Errore nel caricamento dei turni:', error.message);
+      });
   }
 
   function changePassword() {
