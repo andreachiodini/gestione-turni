@@ -11,15 +11,100 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
 
   <style>
-    /* (Qui il tuo CSS normale) */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    #login-form, #shift-section {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #cccccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #error-message {
+      color: red;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-<!-- (Qui il tuo login e la gestione turni) -->
+<h1>Gestione Turni Collaboratori</h1>
+
+<!-- Login Form -->
+<div id="login-form">
+  <h2>Accedi</h2>
+  <input type="email" id="username" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Accedi</button>
+  <div id="error-message"></div>
+</div>
+
+<!-- Shift Section (hidden at start) -->
+<div id="shift-section" style="display:none;">
+  <h2>Benvenuto, <span id="user-name"></span>!</h2>
+
+  <div class="form-group">
+    <label for="date">Data</label>
+    <input type="date" id="date">
+  </div>
+
+  <div class="form-group">
+    <label for="start-time">Ora Inizio</label>
+    <input type="time" id="start-time">
+  </div>
+
+  <div class="form-group">
+    <label for="end-time">Ora Fine</label>
+    <input type="time" id="end-time">
+  </div>
+
+  <div class="form-group">
+    <label for="role">Mansione</label>
+    <select id="role">
+      <option value="Assistente Bagnanti">Assistente Bagnanti</option>
+      <option value="Istruttore">Istruttore</option>
+      <option value="Aiuto Allenatore">Aiuto Allenatore</option>
+      <option value="Segreteria">Segreteria</option>
+      <option value="Cassa">Cassa</option>
+      <!-- Aggiungi altre mansioni se vuoi -->
+    </select>
+  </div>
+
+  <button onclick="addShift()">Aggiungi Turno</button>
+  <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
+
+  <table id="shift-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Ora Inizio</th>
+        <th>Ora Fine</th>
+        <th>Mansione</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Turni aggiunti -->
+    </tbody>
+  </table>
+</div>
 
 <script>
-  // Collegamento al tuo progetto Firebase
+  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
     authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -33,10 +118,9 @@
   // Inizializza Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-</script>
 
-<script>
-  // Funzione LOGIN Firebase
+  let currentUser = "";
+
   function login() {
     const email = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -44,12 +128,11 @@
 
     auth.signInWithEmailAndPassword(email, password)
       .then((userCredential) => {
-        // Login riuscito
         const user = userCredential.user;
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('shift-section').style.display = 'block';
         document.getElementById('user-name').innerText = user.email;
-        currentUser = user.email.replace('.', '_'); // Se serve usarlo per salvataggi
+        currentUser = user.email.replace('.', '_'); // usiamo email come ID unico
         loadShifts();
       })
       .catch((error) => {
@@ -57,12 +140,57 @@
       });
   }
 
-  // Resto delle funzioni: addShift(), saveShift(), loadShifts() ecc. (Come già fatto)
+  function logout() {
+    auth.signOut().then(() => {
+      location.reload();
+    }).catch((error) => {
+      console.error("Errore di logout", error);
+    });
+  }
 
-  let currentUser = "";
+  const shiftTableBody = document.querySelector('#shift-table tbody');
 
-  // (Qui metti la gestione turni come abbiamo già costruito prima)
+  function addShift() {
+    const date = document.getElementById('date').value;
+    const startTime = document.getElementById('start-time').value;
+    const endTime = document.getElementById('end-time').value;
+    const role = document.getElementById('role').value;
 
+    if (date && startTime && endTime && role) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${date}</td>
+        <td>${startTime}</td>
+        <td>${endTime}</td>
+        <td>${role}</td>
+      `;
+      shiftTableBody.appendChild(row);
+
+      saveShift({ date, startTime, endTime, role });
+    } else {
+      alert('Compila tutti i campi!');
+    }
+  }
+
+  function saveShift(shift) {
+    let shifts = JSON.parse(localStorage.getItem('shifts_' + currentUser)) || [];
+    shifts.push(shift);
+    localStorage.setItem('shifts_' + currentUser, JSON.stringify(shifts));
+  }
+
+  function loadShifts() {
+    const shifts = JSON.parse(localStorage.getItem('shifts_' + currentUser)) || [];
+    shifts.forEach(shift => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${shift.date}</td>
+        <td>${shift.startTime}</td>
+        <td>${shift.endTime}</td>
+        <td>${shift.role}</td>
+      `;
+      shiftTableBody.appendChild(row);
+    });
+  }
 </script>
 
 </body>
