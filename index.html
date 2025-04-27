@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-  <!-- Libreria jsPDF -->
+  <!-- jsPDF per PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -49,56 +49,65 @@
 <div id="shift-section" style="display:none;">
   <h2>Benvenuto, <span id="user-name"></span>!</h2>
 
-  <input type="date" id="date">
-  <input type="time" id="start-time">
-  <input type="time" id="end-time">
-  <select id="role"></select>
-
-  <button onclick="addShift()">Aggiungi / Salva Modifica</button>
-  <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
-
-  <h3>Filtri</h3>
-  <select id="filter-role" onchange="loadShifts()">
-    <option value="">Tutte le mansioni</option>
-  </select>
-  <input type="date" id="start-date" onchange="loadShifts()">
-  <input type="date" id="end-date" onchange="loadShifts()">
-  <select id="sort-order" onchange="loadShifts()">
-    <option value="asc">Dal più vecchio</option>
-    <option value="desc">Dal più recente</option>
-  </select>
-
-  <table id="shift-table">
-    <thead>
-      <tr><th>Data</th><th>Ora Inizio</th><th>Ora Fine</th><th>Mansione</th><th>Azioni</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <div class="summary-table">
-    <h3>Ore Lavorate per Mansione</h3>
-    <table id="summary-table">
-      <thead><tr><th>Mansione</th><th>Ore Totali</th></tr></thead>
-      <tbody></tbody>
-    </table>
+  <!-- Richiesta Nome e Cognome -->
+  <div id="name-form">
+    <h3>Inserisci Nome e Cognome</h3>
+    <input type="text" id="full-name" placeholder="Nome e Cognome">
+    <button onclick="saveName()">Conferma Nome</button>
   </div>
 
-  <h3>Firma Collaboratore</h3>
-  <canvas id="signature-canvas" width="300" height="100"></canvas><br>
-  <button onclick="clearSignature()" style="margin-top: 10px;">Pulisci Firma</button>
-  <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Turni in PDF</button>
+  <div id="shift-content" style="display:none;">
+    <input type="date" id="date">
+    <input type="time" id="start-time">
+    <input type="time" id="end-time">
+    <select id="role"></select>
 
-  <details>
-    <summary>Cambia la tua password</summary>
-    <input type="password" id="old-password" placeholder="Vecchia Password">
-    <input type="password" id="new-password" placeholder="Nuova Password">
-    <button onclick="changePassword()">Conferma Cambio Password</button>
-    <div id="password-message"></div>
-  </details>
+    <button onclick="addShift()">Aggiungi / Salva Modifica</button>
+    <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
+
+    <h3>Filtri</h3>
+    <select id="filter-role" onchange="loadShifts()">
+      <option value="">Tutte le mansioni</option>
+    </select>
+    <input type="date" id="start-date" onchange="loadShifts()">
+    <input type="date" id="end-date" onchange="loadShifts()">
+    <select id="sort-order" onchange="loadShifts()">
+      <option value="asc">Dal più vecchio</option>
+      <option value="desc">Dal più recente</option>
+    </select>
+
+    <table id="shift-table">
+      <thead>
+        <tr><th>Data</th><th>Ora Inizio</th><th>Ora Fine</th><th>Mansione</th><th>Azioni</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="summary-table">
+      <h3>Ore Lavorate per Mansione</h3>
+      <table id="summary-table">
+        <thead><tr><th>Mansione</th><th>Ore Totali</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h3>Firma Collaboratore</h3>
+    <canvas id="signature-canvas" width="300" height="100"></canvas><br>
+    <button onclick="clearSignature()" style="margin-top: 10px;">Pulisci Firma</button>
+    <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Turni in PDF</button>
+
+    <details>
+      <summary>Cambia la tua password</summary>
+      <input type="password" id="old-password" placeholder="Vecchia Password">
+      <input type="password" id="new-password" placeholder="Nuova Password">
+      <button onclick="changePassword()">Conferma Cambio Password</button>
+      <div id="password-message"></div>
+    </details>
+  </div>
 </div>
 
 <script>
-// Firebase config
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
   authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -115,7 +124,9 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 let currentUser = "";
+let fullName = "";
 let editingShiftId = null;
+
 const shiftTableBody = document.querySelector('#shift-table tbody');
 const summaryTableBody = document.querySelector('#summary-table tbody');
 const roleSelect = document.getElementById('role');
@@ -124,7 +135,7 @@ const canvas = document.getElementById('signature-canvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
 
-// Mansioni
+// Ruoli disponibili
 const mansions = [
   "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO", "Cassa FERIALE", "Cassa FESTIVO",
   "Rotazione FERIALE", "Rotazione FESTIVO", "Istruttore FERIALE", "Istruttore FESTIVO",
@@ -135,6 +146,7 @@ const mansions = [
   "Propaganda FERIALE", "Propaganda FESTIVO", "Segreteria FERIALE", "Segreteria FESTIVO",
   "Coordinatore FERIALE", "Coordinatore FESTIVO", "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
 ];
+
 mansions.forEach(role => {
   const option = document.createElement('option');
   option.value = role;
@@ -155,9 +167,23 @@ function login() {
       document.getElementById('shift-section').style.display = 'block';
       document.getElementById('user-name').innerText = userCredential.user.email;
       currentUser = userCredential.user.email.replace(/[.#$\[\]]/g, '_');
-      loadShifts();
+      // Prima mostra la richiesta Nome Cognome
+      document.getElementById('name-form').style.display = 'block';
+      document.getElementById('shift-content').style.display = 'none';
     })
     .catch(() => document.getElementById('error-message').innerText = "Credenziali errate. Riprova.");
+}
+
+// Salva Nome Cognome dopo login
+function saveName() {
+  fullName = document.getElementById('full-name').value.trim();
+  if (!fullName) {
+    alert("Inserisci il tuo Nome e Cognome!");
+    return;
+  }
+  document.getElementById('name-form').style.display = 'none';
+  document.getElementById('shift-content').style.display = 'block';
+  loadShifts();
 }
 
 // Logout
@@ -187,7 +213,7 @@ function changePassword() {
     .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
 }
 
-// Turni
+// Turni gestione
 function addShift() {
   const date = document.getElementById('date').value;
   const startTime = document.getElementById('start-time').value;
@@ -295,7 +321,7 @@ function deleteShift(id) {
   }
 }
 
-// Firma digitale Canvas
+// Disegno Canvas
 canvas.addEventListener('mousedown', () => drawing = true);
 canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
 canvas.addEventListener('mousemove', e => {
@@ -313,14 +339,28 @@ function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// Esporta PDF
+// Esporta PDF completo
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
+  // Logo Base64 (servirà convertirlo oppure inserisco un finto per adesso)
+  const logoImg = '/path-del-logo.jpg'; // ***Qui serve inserire logo in base64***
+
   let y = 20;
+
   doc.setFontSize(16);
   doc.text("Riepilogo Turni Collaboratore", 60, y);
+  doc.setFontSize(14);
+  y += 10;
+  doc.text(fullName, 60, y);
+
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text("Data        Ora Inizio     Ora Fine     Mansione", 10, y);
+  y += 5;
+  doc.line(10, y, 200, y);
   y += 10;
 
   const rows = document.querySelectorAll('#shift-table tbody tr');
@@ -329,21 +369,18 @@ async function exportPDF() {
     return;
   }
 
-  doc.setFontSize(12);
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
-    const text = `Data: ${cells[0].innerText} | Inizio: ${cells[1].innerText} | Fine: ${cells[2].innerText} | Mansione: ${cells[3].innerText}`;
-    y += 10;
+    const text = `${cells[0].innerText}     ${cells[1].innerText}       ${cells[2].innerText}        ${cells[3].innerText}`;
     if (y > 270) { doc.addPage(); y = 20; }
     doc.text(text, 10, y);
+    y += 8;
   });
 
-  y += 30;
-  if (y > 250) { doc.addPage(); y = 20; }
-
-  const signatureImage = canvas.toDataURL("image/png");
+  y += 20;
   doc.text("Firma Collaboratore:", 10, y);
   y += 5;
+  const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, y, 80, 30);
 
   const now = new Date();
