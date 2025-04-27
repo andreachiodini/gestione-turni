@@ -342,26 +342,43 @@ function clearSignature() {
 // Esporta PDF completo
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF('landscape'); // PDF orizzontale
 
-  // Logo Base64 (servirà convertirlo oppure inserisco un finto per adesso)
-  const logoImg = '/path-del-logo.jpg'; // ***Qui serve inserire logo in base64***
+  // Logo FIN Lombardia in base64
+  const logoBase64 = 'data:image/jpeg;base64,PUT_BASE64_LOGO_HERE'; // <-- sostituire con logo se vuoi subito
 
-  let y = 20;
-
-  doc.setFontSize(16);
-  doc.text("Riepilogo Turni Collaboratore", 60, y);
+  // Intestazione
+  doc.addImage(logoBase64, 'JPEG', 10, 5, 40, 20);
+  doc.setFontSize(18);
+  doc.text('CENTRO FIN LAMPUGNANO', 80, 15);
   doc.setFontSize(14);
-  y += 10;
-  doc.text(fullName, 60, y);
 
-  y += 10;
+  const now = new Date();
+  const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+  const month = monthNames[now.getMonth()];
+  const year = now.getFullYear();
 
-  doc.setFontSize(12);
-  doc.text("Data        Ora Inizio     Ora Fine     Mansione", 10, y);
-  y += 5;
-  doc.line(10, y, 200, y);
-  y += 10;
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 80, 25);
+  doc.text(fullName, 80, 35); // Nome collaboratore
+
+  // Impostazioni tabella
+  let startY = 45;
+  doc.setFontSize(10);
+
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+
+  // intestazione giorni
+  let startX = 10;
+  doc.text('Mansione', startX, startY);
+  days.forEach((day, index) => {
+    doc.text(day, startX + 40 + index * 7, startY);
+  });
+  doc.text('Totale Ore', startX + 40 + 31 * 7, startY);
+
+  startY += 7;
+
+  const shiftsByRole = {};
 
   const rows = document.querySelectorAll('#shift-table tbody tr');
   if (rows.length === 0) {
@@ -369,26 +386,63 @@ async function exportPDF() {
     return;
   }
 
+  // Prepariamo i dati
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
-    const text = `${cells[0].innerText}     ${cells[1].innerText}       ${cells[2].innerText}        ${cells[3].innerText}`;
-    if (y > 270) { doc.addPage(); y = 20; }
-    doc.text(text, 10, y);
-    y += 8;
+    const date = new Date(cells[0].innerText);
+    const day = date.getDate();
+    const role = cells[3].innerText;
+    const start = cells[1].innerText;
+    const end = cells[2].innerText;
+
+    if (!shiftsByRole[role]) shiftsByRole[role] = {};
+
+    shiftsByRole[role][day] = { start, end };
   });
 
-  y += 20;
-  doc.text("Firma Collaboratore:", 10, y);
-  y += 5;
-  const signatureImage = canvas.toDataURL("image/png");
-  doc.addImage(signatureImage, 'PNG', 10, y, 80, 30);
+  // Scriviamo la tabella
+  for (const role in shiftsByRole) {
+    let x = 10;
+    doc.text(role, x, startY);
+    x += 40;
 
-  const now = new Date();
-  const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-  const month = monthNames[now.getMonth()];
-  const year = now.getFullYear();
+    let totalHours = 0;
+
+    for (let d = 1; d <= 31; d++) {
+      if (shiftsByRole[role][d]) {
+        const shift = shiftsByRole[role][d];
+        doc.text(`${shift.start}-${shift.end}`, x, startY);
+
+        // Calcolo ore lavorate
+        const [sh, sm] = shift.start.split(':').map(Number);
+        const [eh, em] = shift.end.split(':').map(Number);
+
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff < 0) diff += 24 * 60; // gestione se va dopo mezzanotte
+
+        totalHours += diff / 60;
+      }
+      x += 7;
+    }
+    doc.text(totalHours.toFixed(2) + 'h', x, startY);
+    startY += 7;
+
+    if (startY > 190) { 
+      doc.addPage();
+      startY = 20;
+    }
+  }
+
+  // Spazio Firma
+  startY += 20;
+  doc.text("Firma Collaboratore:", 10, startY);
+  startY += 5;
+
+  const signatureImage = canvas.toDataURL("image/png");
+  doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
+
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
-  const fileName = `Turni_${userCleanName}_${month}${year}.pdf`;
+  const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
   doc.save(fileName);
 }
