@@ -169,8 +169,19 @@ function login() {
       document.getElementById('shift-section').style.display = 'block';
       document.getElementById('user-name').innerText = userCredential.user.email;
       currentUser = userCredential.user.email.replace(/[.#$\[\]]/g, '_');
-      document.getElementById('name-form').style.display = 'block';
-      document.getElementById('shift-content').style.display = 'none';
+
+      // Verifica se il Nome e Cognome sono già salvati
+      database.ref('users/' + currentUser).once('value').then(snapshot => {
+        if (snapshot.exists() && snapshot.val().fullName) {
+          fullName = snapshot.val().fullName;
+          document.getElementById('name-form').style.display = 'none';
+          document.getElementById('shift-content').style.display = 'block';
+          loadShifts();
+        } else {
+          document.getElementById('name-form').style.display = 'block';
+          document.getElementById('shift-content').style.display = 'none';
+        }
+      });
     })
     .catch(() => document.getElementById('error-message').innerText = "Credenziali errate. Riprova.");
 }
@@ -182,9 +193,14 @@ function saveName() {
     alert("Inserisci il tuo Nome e Cognome!");
     return;
   }
-  document.getElementById('name-form').style.display = 'none';
-  document.getElementById('shift-content').style.display = 'block';
-  loadShifts();
+  // Salva Nome Cognome su Firebase
+  database.ref('users/' + currentUser).set({
+    fullName: fullName
+  }).then(() => {
+    document.getElementById('name-form').style.display = 'none';
+    document.getElementById('shift-content').style.display = 'block';
+    loadShifts();
+  });
 }
 
 // Logout
