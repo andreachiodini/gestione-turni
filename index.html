@@ -168,7 +168,7 @@ function login() {
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('shift-section').style.display = 'block';
       document.getElementById('user-name').innerText = userCredential.user.email;
-      currentUser = userCredential.user.email.replace(/[.#$\[\]]/g, '_');
+      currentUser = userCredential.user.uid; // 🔥 USA L'UID !!
 
       // Verifica se il Nome e Cognome sono già salvati
       database.ref('users/' + currentUser).once('value').then(snapshot => {
@@ -193,7 +193,6 @@ function saveName() {
     alert("Inserisci il tuo Nome e Cognome!");
     return;
   }
-  // Salva Nome Cognome su Firebase
   database.ref('users/' + currentUser).set({
     fullName: fullName
   }).then(() => {
