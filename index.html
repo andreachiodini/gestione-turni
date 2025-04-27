@@ -25,6 +25,7 @@
     h1 { margin-bottom: 20px; }
     #shift-content { margin-top: 20px; }
   </style>
+
 </head>
 <body>
 
@@ -174,10 +175,11 @@ function login() {
     .catch(() => document.getElementById('error-message').innerText = "Credenziali errate. Riprova.");
 }
 
+// Salva Nome Cognome
 function saveName() {
   fullName = document.getElementById('full-name').value.trim();
   if (!fullName) {
-    alert("Inserisci Nome e Cognome!");
+    alert("Inserisci il tuo Nome e Cognome!");
     return;
   }
   document.getElementById('name-form').style.display = 'none';
@@ -185,10 +187,12 @@ function saveName() {
   loadShifts();
 }
 
+// Logout
 function logout() {
   auth.signOut().then(() => location.reload());
 }
 
+// Reset password
 function sendResetEmail() {
   const email = document.getElementById('reset-email').value.trim();
   auth.sendPasswordResetEmail(email)
@@ -196,6 +200,7 @@ function sendResetEmail() {
     .catch(error => document.getElementById('reset-message').innerText = error.message);
 }
 
+// Cambio password
 function changePassword() {
   const user = auth.currentUser;
   const oldPassword = document.getElementById('old-password').value.trim();
@@ -209,6 +214,7 @@ function changePassword() {
     .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
 }
 
+// Aggiungi o modifica turno
 function addShift() {
   const date = document.getElementById('date').value;
   const startTime = document.getElementById('start-time').value;
@@ -232,13 +238,14 @@ function addShift() {
   }
 }
 
+// Svuota form
 function clearForm() {
   document.getElementById('date').value = '';
   document.getElementById('start-time').value = '';
   document.getElementById('end-time').value = '';
   document.getElementById('role').value = '';
 }
-
+  // Carica i turni e aggiorna anche il riepilogo
 function loadShifts() {
   shiftTableBody.innerHTML = '';
   summaryTableBody.innerHTML = '';
@@ -259,6 +266,8 @@ function loadShifts() {
 
       shiftsArray.sort((a, b) => sortOrder === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date));
 
+      const hoursByRole = {};
+
       shiftsArray.forEach(shift => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -271,11 +280,26 @@ function loadShifts() {
             <button onclick="deleteShift('${shift.id}')" style="background-color:red;color:white;">Elimina</button>
           </td>`;
         shiftTableBody.appendChild(row);
+
+        const start = parseTime(shift.startTime);
+        const end = parseTime(shift.endTime);
+        let diffHours = (end - start) / (1000 * 60 * 60);
+        if (diffHours < 0) diffHours += 24;
+
+        if (!hoursByRole[shift.role]) hoursByRole[shift.role] = 0;
+        hoursByRole[shift.role] += diffHours;
       });
+
+      for (const role in hoursByRole) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${role}</td><td>${hoursByRole[role].toFixed(2)} ore</td>`;
+        summaryTableBody.appendChild(row);
+      }
     }
   });
 }
 
+// Parsing orari
 function parseTime(timeStr) {
   const [hours, minutes] = timeStr.split(":").map(Number);
   const date = new Date();
@@ -283,6 +307,7 @@ function parseTime(timeStr) {
   return date;
 }
 
+// Modifica turno
 function editShift(id) {
   database.ref('shifts/' + currentUser + '/' + id).once('value').then(snapshot => {
     const shift = snapshot.val();
@@ -296,6 +321,7 @@ function editShift(id) {
   });
 }
 
+// Elimina turno
 function deleteShift(id) {
   if (confirm("Sei sicuro di voler eliminare questo turno?")) {
     database.ref('shifts/' + currentUser + '/' + id).remove().then(() => loadShifts());
@@ -319,14 +345,14 @@ canvas.addEventListener('mousemove', e => {
 function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-  async function exportPDF() {
+
+// Esportazione PDF corretta
+async function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('landscape'); // Formato orizzontale
+  const doc = new jsPDF('landscape');
 
-  // Logo FIN Lombardia (base64 integrato)
-  const logoBase64 = 'data:image/jpeg;base64,...'; // Qui devi incollare il base64 vero (posso dartelo)
+  const logoBase64 = 'data:image/jpeg;base64,...'; // Qui devi inserire il vero base64 del logo
 
-  // Header documento
   doc.addImage(logoBase64, 'JPEG', 10, 5, 40, 20);
   doc.setFontSize(18);
   doc.text('CENTRO FIN LAMPUGNANO', 70, 15);
@@ -341,20 +367,21 @@ function clearSignature() {
   doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 70, 25);
   doc.text(fullName, 70, 35);
 
-  // Inizio tabella
-  let startY = 45;
-  doc.setFontSize(10);
+  let startY = 50;
+  const startX = 10;
+  const colWidth = 10;
+  const mansioneColWidth = 40;
+  const fontSize = 8;
 
-  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+  doc.setFontSize(fontSize);
 
-  let startX = 10;
   doc.text('Mansione', startX, startY);
-  days.forEach((day, index) => {
-    doc.text(day, startX + 40 + index * 7, startY);
-  });
-  doc.text('Totale Ore', startX + 40 + 31 * 7, startY);
+  for (let i = 1; i <= 31; i++) {
+    doc.text(i.toString(), startX + mansioneColWidth + (i - 1) * colWidth, startY);
+  }
+  doc.text('Totale Ore', startX + mansioneColWidth + 31 * colWidth + 5, startY);
 
-  startY += 7;
+  startY += 6;
 
   const shiftsByRole = {};
 
@@ -364,7 +391,6 @@ function clearSignature() {
     return;
   }
 
-  // Raggruppiamo turni per ruolo
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
     const date = new Date(cells[0].innerText);
@@ -378,41 +404,41 @@ function clearSignature() {
     shiftsByRole[role][day] = { start, end };
   });
 
-  // Scriviamo la tabella
   for (const role in shiftsByRole) {
-    let x = 10;
+    let x = startX;
     doc.text(role, x, startY);
-    x += 40;
+    x += mansioneColWidth;
 
     let totalHours = 0;
 
     for (let d = 1; d <= 31; d++) {
       if (shiftsByRole[role][d]) {
         const shift = shiftsByRole[role][d];
-        doc.text(`${shift.start}-${shift.end}`, x, startY);
+        const shiftText = `${shift.start}-${shift.end}`;
+        doc.text(shiftText, x, startY);
 
-        // Calcolo ore
         const [sh, sm] = shift.start.split(':').map(Number);
         const [eh, em] = shift.end.split(':').map(Number);
 
         let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60; // turni notturni
+        if (diff < 0) diff += 24 * 60;
 
         totalHours += diff / 60;
       }
-      x += 7;
+      x += colWidth;
     }
-    doc.text(totalHours.toFixed(2) + 'h', x, startY);
-    startY += 7;
 
-    if (startY > 190) { 
+    doc.text(totalHours.toFixed(2) + 'h', x + 5, startY);
+    startY += 6;
+
+    if (startY > 190) {
       doc.addPage();
       startY = 20;
+      doc.setFontSize(fontSize);
     }
   }
 
-  // Firma collaboratore
-  startY += 20;
+  startY += 15;
   doc.text("Firma Collaboratore:", 10, startY);
   startY += 5;
 
