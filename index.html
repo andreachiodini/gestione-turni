@@ -39,6 +39,14 @@
       color: red;
       margin-top: 10px;
     }
+    details summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -109,13 +117,15 @@
     </tbody>
   </table>
 
-  <!-- Cambio Password Section -->
-  <div id="change-password-section" style="margin-top: 30px;">
-    <h3>Cambia Password</h3>
-    <input type="password" id="new-password" placeholder="Nuova Password">
-    <button onclick="changePassword()">Conferma Cambio Password</button>
-    <div id="password-message"></div>
-  </div>
+  <!-- Cambio Password Section a tendina -->
+  <details>
+    <summary>Cambia la tua password</summary>
+    <div style="margin-top: 10px;">
+      <input type="password" id="new-password" placeholder="Nuova Password">
+      <button onclick="changePassword()">Conferma Cambio Password</button>
+      <div id="password-message"></div>
+    </div>
+  </details>
 </div>
 
 <script>
@@ -192,7 +202,6 @@
     shifts.push(shift);
     localStorage.setItem('shifts_' + currentUser, JSON.stringify(shifts));
 
-    // Salva anche su Firebase Database
     const shiftId = database.ref().child('shifts').push().key;
     database.ref('shifts/' + currentUser + '/' + shiftId).set(shift);
   }
