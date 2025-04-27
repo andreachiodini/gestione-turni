@@ -9,22 +9,23 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-  <!-- jsPDF per PDF -->
+  <!-- jsPDF per esportazione PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-    #login-form, #shift-section { max-width: 600px; margin: 0 auto; }
+    #login-form, #shift-section { max-width: 1200px; margin: 0 auto; }
     input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
     table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { border: 1px solid #cccccc; padding: 8px; text-align: center; }
+    th, td { border: 1px solid #cccccc; padding: 8px; text-align: center; font-size: 10px; }
     #error-message, #password-message, #reset-message { color: red; margin-top: 10px; }
     details summary { cursor: pointer; font-weight: bold; margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
     .summary-table { margin-top: 30px; text-align: left; }
     canvas { border: 1px solid #ccc; margin-top: 20px; }
+    h1 { margin-bottom: 20px; }
+    #shift-content { margin-top: 20px; }
   </style>
 </head>
-
 <body>
 
 <h1>Gestione Turni Collaboratori</h1>
@@ -45,11 +46,11 @@
   </div>
 </div>
 
-<!-- Shift Section -->
+<!-- Area Turni -->
 <div id="shift-section" style="display:none;">
   <h2>Benvenuto, <span id="user-name"></span>!</h2>
 
-  <!-- Richiesta Nome e Cognome -->
+  <!-- Nome e Cognome -->
   <div id="name-form">
     <h3>Inserisci Nome e Cognome</h3>
     <input type="text" id="full-name" placeholder="Nome e Cognome">
@@ -65,7 +66,7 @@
     <button onclick="addShift()">Aggiungi / Salva Modifica</button>
     <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
-    <h3>Filtri</h3>
+    <h3>Filtri Turni</h3>
     <select id="filter-role" onchange="loadShifts()">
       <option value="">Tutte le mansioni</option>
     </select>
@@ -94,7 +95,7 @@
     <h3>Firma Collaboratore</h3>
     <canvas id="signature-canvas" width="300" height="100"></canvas><br>
     <button onclick="clearSignature()" style="margin-top: 10px;">Pulisci Firma</button>
-    <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Turni in PDF</button>
+    <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Foglio Ore in PDF</button>
 
     <details>
       <summary>Cambia la tua password</summary>
@@ -107,7 +108,7 @@
 </div>
 
 <script>
-// Config Firebase
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
   authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -135,7 +136,7 @@ const canvas = document.getElementById('signature-canvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
 
-// Ruoli disponibili
+// Lista mansioni
 const mansions = [
   "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO", "Cassa FERIALE", "Cassa FESTIVO",
   "Rotazione FERIALE", "Rotazione FESTIVO", "Istruttore FERIALE", "Istruttore FESTIVO",
@@ -167,18 +168,16 @@ function login() {
       document.getElementById('shift-section').style.display = 'block';
       document.getElementById('user-name').innerText = userCredential.user.email;
       currentUser = userCredential.user.email.replace(/[.#$\[\]]/g, '_');
-      // Prima mostra la richiesta Nome Cognome
       document.getElementById('name-form').style.display = 'block';
       document.getElementById('shift-content').style.display = 'none';
     })
     .catch(() => document.getElementById('error-message').innerText = "Credenziali errate. Riprova.");
 }
 
-// Salva Nome Cognome dopo login
 function saveName() {
   fullName = document.getElementById('full-name').value.trim();
   if (!fullName) {
-    alert("Inserisci il tuo Nome e Cognome!");
+    alert("Inserisci Nome e Cognome!");
     return;
   }
   document.getElementById('name-form').style.display = 'none';
@@ -186,12 +185,10 @@ function saveName() {
   loadShifts();
 }
 
-// Logout
 function logout() {
   auth.signOut().then(() => location.reload());
 }
 
-// Reset Password
 function sendResetEmail() {
   const email = document.getElementById('reset-email').value.trim();
   auth.sendPasswordResetEmail(email)
@@ -199,7 +196,6 @@ function sendResetEmail() {
     .catch(error => document.getElementById('reset-message').innerText = error.message);
 }
 
-// Cambio Password
 function changePassword() {
   const user = auth.currentUser;
   const oldPassword = document.getElementById('old-password').value.trim();
@@ -213,7 +209,6 @@ function changePassword() {
     .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
 }
 
-// Turni gestione
 function addShift() {
   const date = document.getElementById('date').value;
   const startTime = document.getElementById('start-time').value;
@@ -264,7 +259,6 @@ function loadShifts() {
 
       shiftsArray.sort((a, b) => sortOrder === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date));
 
-      const hoursByRole = {};
       shiftsArray.forEach(shift => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -277,20 +271,7 @@ function loadShifts() {
             <button onclick="deleteShift('${shift.id}')" style="background-color:red;color:white;">Elimina</button>
           </td>`;
         shiftTableBody.appendChild(row);
-
-        const start = parseTime(shift.startTime);
-        const end = parseTime(shift.endTime);
-        let diffHours = (end - start) / (1000 * 60 * 60);
-        if (diffHours < 0) diffHours += 24;
-        if (!hoursByRole[shift.role]) hoursByRole[shift.role] = 0;
-        hoursByRole[shift.role] += diffHours;
       });
-
-      for (const role in hoursByRole) {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${role}</td><td>${hoursByRole[role].toFixed(2)} ore</td>`;
-        summaryTableBody.appendChild(row);
-      }
     }
   });
 }
@@ -321,7 +302,7 @@ function deleteShift(id) {
   }
 }
 
-// Disegno Canvas
+// Firma Canvas
 canvas.addEventListener('mousedown', () => drawing = true);
 canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
 canvas.addEventListener('mousemove', e => {
@@ -338,19 +319,17 @@ canvas.addEventListener('mousemove', e => {
 function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
-// Esporta PDF completo
-async function exportPDF() {
+  async function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('landscape'); // PDF orizzontale
+  const doc = new jsPDF('landscape'); // Formato orizzontale
 
-  // Logo FIN Lombardia in base64
-  const logoBase64 = 'data:image/jpeg;base64,PUT_BASE64_LOGO_HERE'; // <-- sostituire con logo se vuoi subito
+  // Logo FIN Lombardia (base64 integrato)
+  const logoBase64 = 'data:image/jpeg;base64,...'; // Qui devi incollare il base64 vero (posso dartelo)
 
-  // Intestazione
+  // Header documento
   doc.addImage(logoBase64, 'JPEG', 10, 5, 40, 20);
   doc.setFontSize(18);
-  doc.text('CENTRO FIN LAMPUGNANO', 80, 15);
+  doc.text('CENTRO FIN LAMPUGNANO', 70, 15);
   doc.setFontSize(14);
 
   const now = new Date();
@@ -359,16 +338,15 @@ async function exportPDF() {
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 80, 25);
-  doc.text(fullName, 80, 35); // Nome collaboratore
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 70, 25);
+  doc.text(fullName, 70, 35);
 
-  // Impostazioni tabella
+  // Inizio tabella
   let startY = 45;
   doc.setFontSize(10);
 
   const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 
-  // intestazione giorni
   let startX = 10;
   doc.text('Mansione', startX, startY);
   days.forEach((day, index) => {
@@ -386,7 +364,7 @@ async function exportPDF() {
     return;
   }
 
-  // Prepariamo i dati
+  // Raggruppiamo turni per ruolo
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
     const date = new Date(cells[0].innerText);
@@ -413,12 +391,12 @@ async function exportPDF() {
         const shift = shiftsByRole[role][d];
         doc.text(`${shift.start}-${shift.end}`, x, startY);
 
-        // Calcolo ore lavorate
+        // Calcolo ore
         const [sh, sm] = shift.start.split(':').map(Number);
         const [eh, em] = shift.end.split(':').map(Number);
 
         let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60; // gestione se va dopo mezzanotte
+        if (diff < 0) diff += 24 * 60; // turni notturni
 
         totalHours += diff / 60;
       }
@@ -433,7 +411,7 @@ async function exportPDF() {
     }
   }
 
-  // Spazio Firma
+  // Firma collaboratore
   startY += 20;
   doc.text("Firma Collaboratore:", 10, startY);
   startY += 5;
@@ -446,7 +424,7 @@ async function exportPDF() {
 
   doc.save(fileName);
 }
-</script>
 
+</script>
 </body>
 </html>
