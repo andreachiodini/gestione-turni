@@ -9,53 +9,26 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <!-- Libreria jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      text-align: center;
-    }
-    #login-form, #shift-section {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-    }
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #cccccc;
-      padding: 8px;
-      text-align: center;
-    }
-    #error-message, #password-message, #reset-message {
-      color: red;
-      margin-top: 10px;
-    }
-    details summary {
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #f0f0f0;
-      border-radius: 5px;
-    }
-    .summary-table {
-      margin-top: 30px;
-      text-align: left;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+    #login-form, #shift-section { max-width: 600px; margin: 0 auto; }
+    input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { border: 1px solid #cccccc; padding: 8px; text-align: center; }
+    #error-message, #password-message, #reset-message { color: red; margin-top: 10px; }
+    details summary { cursor: pointer; font-weight: bold; margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
+    .summary-table { margin-top: 30px; text-align: left; }
+    canvas { border: 1px solid #ccc; margin-top: 20px; }
   </style>
 </head>
 
 <body>
+
 <h1>Gestione Turni Collaboratori</h1>
+
 <!-- Login Form -->
 <div id="login-form">
   <h2>Accedi</h2>
@@ -76,89 +49,61 @@
 <div id="shift-section" style="display:none;">
   <h2>Benvenuto, <span id="user-name"></span>!</h2>
 
-  <div class="form-group">
-    <label for="date">Data</label>
-    <input type="date" id="date">
-  </div>
-  <div class="form-group">
-    <label for="start-time">Ora Inizio</label>
-    <input type="time" id="start-time">
-  </div>
-  <div class="form-group">
-    <label for="end-time">Ora Fine</label>
-    <input type="time" id="end-time">
-  </div>
-  <div class="form-group">
-    <label for="role">Mansione</label>
-    <select id="role"></select>
-  </div>
+  <input type="date" id="date">
+  <input type="time" id="start-time">
+  <input type="time" id="end-time">
+  <select id="role"></select>
 
   <button onclick="addShift()">Aggiungi / Salva Modifica</button>
   <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
-  <!-- Filtro per MANSIONE -->
-  <div style="margin-top:20px;">
-    <h3>Filtra Turni per Mansione</h3>
-    <select id="filter-role" onchange="loadShifts()">
-      <option value="">Tutte le mansioni</option>
-    </select>
-  </div>
+  <h3>Filtri</h3>
+  <select id="filter-role" onchange="loadShifts()">
+    <option value="">Tutte le mansioni</option>
+  </select>
+  <input type="date" id="start-date" onchange="loadShifts()">
+  <input type="date" id="end-date" onchange="loadShifts()">
+  <select id="sort-order" onchange="loadShifts()">
+    <option value="asc">Dal più vecchio</option>
+    <option value="desc">Dal più recente</option>
+  </select>
 
-  <!-- Filtro per DATA -->
-  <div style="margin-top:20px;">
-    <h3>Filtra Turni per Data</h3>
-    <label for="start-date">Data Inizio</label>
-    <input type="date" id="start-date" onchange="loadShifts()">
-    <label for="end-date">Data Fine</label>
-    <input type="date" id="end-date" onchange="loadShifts()">
-  </div>
-
-  <!-- Filtro per ORDINAMENTO -->
-  <div style="margin-top:20px;">
-    <h3>Ordinamento Turni</h3>
-    <select id="sort-order" onchange="loadShifts()">
-      <option value="asc">Dal più vecchio</option>
-      <option value="desc">Dal più recente</option>
-    </select>
-  </div>
-
-  <!-- TABELLA Turni -->
   <table id="shift-table">
     <thead>
-      <tr>
-        <th>Data</th>
-        <th>Ora Inizio</th>
-        <th>Ora Fine</th>
-        <th>Mansione</th>
-        <th>Azioni</th>
-      </tr>
+      <tr><th>Data</th><th>Ora Inizio</th><th>Ora Fine</th><th>Mansione</th><th>Azioni</th></tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <!-- RIEPILOGO Ore Totali -->
   <div class="summary-table">
     <h3>Ore Lavorate per Mansione</h3>
     <table id="summary-table">
-      <thead>
-        <tr><th>Mansione</th><th>Ore Totali</th></tr>
-      </thead>
+      <thead><tr><th>Mansione</th><th>Ore Totali</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- Cambio Password -->
+  <h3>Firma Collaboratore</h3>
+  <canvas id="signature-canvas" width="300" height="100"></canvas><br>
+  <button onclick="clearSignature()" style="margin-top: 10px;">Pulisci Firma</button>
+  <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Turni in PDF</button>
+
   <details>
     <summary>Cambia la tua password</summary>
-    <div style="margin-top: 10px;">
-      <input type="password" id="old-password" placeholder="Vecchia Password">
-      <input type="password" id="new-password" placeholder="Nuova Password">
-      <button onclick="changePassword()">Conferma Cambio Password</button>
-      <div id="password-message"></div>
-    </div>
+    <input type="password" id="old-password" placeholder="Vecchia Password">
+    <input type="password" id="new-password" placeholder="Nuova Password">
+    <button onclick="changePassword()">Conferma Cambio Password</button>
+    <div id="password-message"></div>
   </details>
 </div>
+
 <script>
+// (ATTENZIONE: Nella prossima risposta ti metto tutto il JavaScript completo)
+</script>
+
+</body>
+</html>
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCfhZ4n_uFbgtcmMHesx1rswTZaUuhgwcQ",
   authDomain: "gestione-turni-50fc4.firebaseapp.com",
@@ -180,32 +125,32 @@ const shiftTableBody = document.querySelector('#shift-table tbody');
 const summaryTableBody = document.querySelector('#summary-table tbody');
 const roleSelect = document.getElementById('role');
 const filterRoleSelect = document.getElementById('filter-role');
+const canvas = document.getElementById('signature-canvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
 
+// Mansioni
 const mansions = [
-  "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO",
-  "Cassa FERIALE", "Cassa FESTIVO", "Rotazione FERIALE", "Rotazione FESTIVO",
-  "Istruttore FERIALE", "Istruttore FESTIVO", "Aiuto allenatore FERIALE", "Aiuto allenatore FESTIVO",
-  "Sincro/Pallan FERIALE", "Sincro/Pallan FESTIVO", "Acquagym FERIALE", "Acquagym FESTIVO",
-  "Baby istruttore FERIALE", "Baby istruttore FESTIVO", "Baby aiuto allenatore FERIALE", "Baby aiuto allenatore FESTIVO",
-  "Neonatale FERIALE", "Neonatale FESTIVO", "Preparto FERIALE", "Preparto FESTIVO",
-  "Lezione individuale FERIALE", "Lezione individuale FESTIVO", "Propaganda FERIALE", "Propaganda FESTIVO",
-  "Segreteria FERIALE", "Segreteria FESTIVO", "Coordinatore FERIALE", "Coordinatore FESTIVO",
-  "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
+  "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO", "Cassa FERIALE", "Cassa FESTIVO",
+  "Rotazione FERIALE", "Rotazione FESTIVO", "Istruttore FERIALE", "Istruttore FESTIVO",
+  "Aiuto allenatore FERIALE", "Aiuto allenatore FESTIVO", "Sincro/Pallan FERIALE", "Sincro/Pallan FESTIVO",
+  "Acquagym FERIALE", "Acquagym FESTIVO", "Baby istruttore FERIALE", "Baby istruttore FESTIVO",
+  "Baby aiuto allenatore FERIALE", "Baby aiuto allenatore FESTIVO", "Neonatale FERIALE", "Neonatale FESTIVO",
+  "Preparto FERIALE", "Preparto FESTIVO", "Lezione individuale FERIALE", "Lezione individuale FESTIVO",
+  "Propaganda FERIALE", "Propaganda FESTIVO", "Segreteria FERIALE", "Segreteria FESTIVO",
+  "Coordinatore FERIALE", "Coordinatore FESTIVO", "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
 ];
-
-// Carico mansioni nei 2 select
 mansions.forEach(role => {
-  const option1 = document.createElement('option');
-  option1.value = role;
-  option1.textContent = role;
-  roleSelect.appendChild(option1);
+  const option = document.createElement('option');
+  option.value = role;
+  option.textContent = role;
+  roleSelect.appendChild(option);
 
-  const option2 = document.createElement('option');
-  option2.value = role;
-  option2.textContent = role;
+  const option2 = option.cloneNode(true);
   filterRoleSelect.appendChild(option2);
 });
 
+// Login
 function login() {
   const email = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value.trim();
@@ -217,15 +162,37 @@ function login() {
       currentUser = userCredential.user.email.replace(/[.#$\[\]]/g, '_');
       loadShifts();
     })
-    .catch(() => {
-      document.getElementById('error-message').innerText = "Credenziali errate. Riprova.";
-    });
+    .catch(() => document.getElementById('error-message').innerText = "Credenziali errate. Riprova.");
 }
 
+// Logout
 function logout() {
   auth.signOut().then(() => location.reload());
 }
 
+// Reset Password
+function sendResetEmail() {
+  const email = document.getElementById('reset-email').value.trim();
+  auth.sendPasswordResetEmail(email)
+    .then(() => document.getElementById('reset-message').innerText = "Email inviata!")
+    .catch(error => document.getElementById('reset-message').innerText = error.message);
+}
+
+// Cambio Password
+function changePassword() {
+  const user = auth.currentUser;
+  const oldPassword = document.getElementById('old-password').value.trim();
+  const newPassword = document.getElementById('new-password').value.trim();
+  const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
+  
+  user.reauthenticateWithCredential(credential)
+    .then(() => user.updatePassword(newPassword).then(() => {
+      document.getElementById('password-message').innerText = "Password cambiata!";
+    }))
+    .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
+}
+
+// Turni
 function addShift() {
   const date = document.getElementById('date').value;
   const startTime = document.getElementById('start-time').value;
@@ -259,6 +226,7 @@ function clearForm() {
 function loadShifts() {
   shiftTableBody.innerHTML = '';
   summaryTableBody.innerHTML = '';
+
   const startDate = document.getElementById('start-date').value;
   const endDate = document.getElementById('end-date').value;
   const sortOrder = document.getElementById('sort-order').value;
@@ -269,12 +237,10 @@ function loadShifts() {
     if (shifts) {
       let shiftsArray = Object.entries(shifts).map(([id, shift]) => ({ id, ...shift }));
 
-      // Filtri
       if (startDate) shiftsArray = shiftsArray.filter(shift => new Date(shift.date) >= new Date(startDate));
       if (endDate) shiftsArray = shiftsArray.filter(shift => new Date(shift.date) <= new Date(endDate));
       if (selectedRole) shiftsArray = shiftsArray.filter(shift => shift.role === selectedRole);
 
-      // Ordinamento
       shiftsArray.sort((a, b) => sortOrder === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date));
 
       const hoursByRole = {};
@@ -334,23 +300,63 @@ function deleteShift(id) {
   }
 }
 
-function sendResetEmail() {
-  const email = document.getElementById('reset-email').value.trim();
-  firebase.auth().sendPasswordResetEmail(email)
-    .then(() => document.getElementById('reset-message').innerText = "Email inviata!")
-    .catch(error => document.getElementById('reset-message').innerText = error.message);
+// Canvas Firma
+canvas.addEventListener('mousedown', () => drawing = true);
+canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+canvas.addEventListener('mousemove', e => {
+  if (!drawing) return;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'black';
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(e.offsetX, e.offsetY);
+});
+function clearSignature() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function changePassword() {
-  const user = firebase.auth().currentUser;
-  const oldPassword = document.getElementById('old-password').value.trim();
-  const newPassword = document.getElementById('new-password').value.trim();
-  const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
+// Esporta PDF
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-  user.reauthenticateWithCredential(credential)
-    .then(() => user.updatePassword(newPassword).then(() => {
-      document.getElementById('password-message').innerText = "Password cambiata!";
-    }))
-    .catch(error => document.getElementById('password-message').innerText = "Errore: " + error.message);
+  let y = 20;
+  doc.setFontSize(16);
+  doc.text("Riepilogo Turni Collaboratore", 60, y);
+  y += 10;
+
+  const rows = document.querySelectorAll('#shift-table tbody tr');
+  if (rows.length === 0) {
+    alert("Nessun turno da esportare!");
+    return;
+  }
+
+  doc.setFontSize(12);
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    const text = `Data: ${cells[0].innerText} | Inizio: ${cells[1].innerText} | Fine: ${cells[2].innerText} | Mansione: ${cells[3].innerText}`;
+    y += 10;
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.text(text, 10, y);
+  });
+
+  y += 30;
+  if (y > 250) { doc.addPage(); y = 20; }
+
+  const signatureImage = canvas.toDataURL("image/png");
+  doc.text("Firma Collaboratore:", 10, y);
+  y += 5;
+  doc.addImage(signatureImage, 'PNG', 10, y, 80, 30);
+
+  const now = new Date();
+  const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+  const month = monthNames[now.getMonth()];
+  const year = now.getFullYear();
+  const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
+  const fileName = `Turni_${userCleanName}_${month}${year}.pdf`;
+
+  doc.save(fileName);
 }
 </script>
