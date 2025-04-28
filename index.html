@@ -442,16 +442,18 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  // Impostazioni font uniformi
-  const headerFontSize = 14; // 🔥 Font unico per intestazioni
-
-  // Titoli
-  doc.setFontSize(headerFontSize);
+  // --- Intestazione PDF ---
+  doc.setFontSize(14);
   doc.text('CENTRO FIN LAMPUGNANO', 40, 15);
-  doc.text(`FOGLIO ORE DI ${new Date().toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase()}`, 40, 25);
+
+  const now = new Date();
+  const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
+  const year = now.getFullYear();
+  
+  doc.text(`FOGLIO ORE DI ${month} ${year}`, 40, 25);
   doc.text(fullName, 40, 35);
 
-  // Tabella
+  // --- Tabella dati ---
   let startY = 50;
   const startX = 5;
   const firstColWidth = 25;
@@ -461,8 +463,9 @@ async function exportPDF() {
 
   const shiftsByDateRole = {};
   const rows = document.querySelectorAll('#shift-table tbody tr');
+
   if (rows.length === 0) {
-    alert("Nessun turno da esportare!");
+    alert("⚠️ Devi inserire almeno un turno prima di esportare il PDF!");
     return;
   }
 
@@ -486,7 +489,7 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
-  // Scrive intestazioni
+  // Intestazione colonne
   doc.text('Data', startX + 2, startY);
   roleList.forEach((role, idx) => {
     const roleX = startX + firstColWidth + idx * colWidth;
@@ -504,7 +507,6 @@ async function exportPDF() {
   let lineStartY = startY - 5;
   let lineEndY = startY + 165;
 
-  // Linee verticali
   doc.setLineWidth(0.1);
   doc.line(startX, lineStartY, startX, lineEndY);
   doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, lineEndY);
@@ -543,13 +545,11 @@ async function exportPDF() {
       }
     });
 
-    // Linea orizzontale dopo ogni giorno
     doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
 
     startY += 4.5;
   }
 
-  // Riga Totali
   startY += 3;
   doc.setFontSize(6);
   doc.text('Totali', startX + 2, startY);
@@ -559,7 +559,6 @@ async function exportPDF() {
     doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
   });
 
-  // Firma Collaboratore
   startY += 12;
   doc.setFontSize(10);
   doc.text("Firma Collaboratore:", 10, startY);
@@ -568,6 +567,7 @@ async function exportPDF() {
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
+  // Nome file dinamico corretto
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
