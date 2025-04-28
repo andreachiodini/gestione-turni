@@ -367,16 +367,16 @@ async function exportPDF() {
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
-    format: 'a3' // 🔥 Superficie molto più larga!
+    format: 'a4'
   });
 
-  const logoBase64 = 'data:image/jpeg;base64,...'; // (inserisci qui il logo base64 vero)
+  const logoBase64 = 'data:image/jpeg;base64,...'; // Inserisci qui il logo base64 corretto
 
   // Header
   doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15);
-  doc.setFontSize(22);
-  doc.text('CENTRO FIN LAMPUGNANO', 50, 20);
-  doc.setFontSize(16);
+  doc.setFontSize(18);
+  doc.text('CENTRO FIN LAMPUGNANO', 50, 15);
+  doc.setFontSize(14);
 
   const now = new Date();
   const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
@@ -384,27 +384,19 @@ async function exportPDF() {
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 50, 30);
-  doc.text(fullName, 50, 40);
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 50, 25);
+  doc.text(fullName, 50, 35);
 
-  // Tabella
-  let startY = 50;
+  // Tabella setup
+  let startY = 45;
   const startX = 5;
-  const colWidth = 12; // Colonne belle larghe
-  const mansioneColWidth = 50; // Larghezza colonna "Mansione"
-  const fontSize = 7; // Font più piccolo e ordinato
-
+  const firstColWidth = 10; // larghezza colonna "Data"
+  const colWidth = 20; // larghezza ogni mansione
+  const fontSize = 7; // font piccolo
   doc.setFontSize(fontSize);
 
-  doc.text('Mansione', startX, startY);
-  for (let i = 1; i <= 31; i++) {
-    doc.text(i.toString(), startX + mansioneColWidth + (i - 1) * colWidth, startY);
-  }
-  doc.text('Totale Ore', startX + mansioneColWidth + 31 * colWidth + 5, startY);
-
-  startY += 5;
-
-  const shiftsByRole = {};
+  // Raccogli i turni
+  const shiftsByDateRole = {};
 
   const rows = document.querySelectorAll('#shift-table tbody tr');
   if (rows.length === 0) {
@@ -412,7 +404,6 @@ async function exportPDF() {
     return;
   }
 
-  // Raggruppa turni per mansione
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
     const date = new Date(cells[0].innerText);
@@ -421,45 +412,66 @@ async function exportPDF() {
     const start = cells[1].innerText;
     const end = cells[2].innerText;
 
-    if (!shiftsByRole[role]) shiftsByRole[role] = {};
-
-    shiftsByRole[role][day] = { start, end };
+    if (!shiftsByDateRole[day]) shiftsByDateRole[day] = {};
+    shiftsByDateRole[day][role] = { start, end };
   });
 
-  // Scrive ogni riga
-  for (const role in shiftsByRole) {
-    let x = startX;
-    doc.text(role, x, startY);
-    x += mansioneColWidth;
+  // Prendiamo tutte le mansioni usate
+  const allRoles = new Set();
+  rows.forEach(row => {
+    const role = row.querySelectorAll('td')[3].innerText;
+    allRoles.add(role);
+  });
 
-    let totalHours = 0;
+  const roleList = Array.from(allRoles);
 
-    for (let d = 1; d <= 31; d++) {
-      if (shiftsByRole[role][d]) {
-        const shift = shiftsByRole[role][d];
-        const shiftText = `${shift.start}-${shift.end}`;
-        doc.text(shiftText, x, startY);
+  // Intestazione tabella
+  doc.text('Data', startX, startY);
+  roleList.forEach((role, idx) => {
+    doc.text(role.substring(0, 10), startX + firstColWidth + idx * colWidth, startY); // taglio se troppo lungo
+  });
 
-        const [sh, sm] = shift.start.split(':').map(Number);
-        const [eh, em] = shift.end.split(':').map(Number);
+  startY += 6;
 
-        let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60; // Turni che passano la mezzanotte
+  // Corpo tabella
+  const totalHoursByRole = {};
 
-        totalHours += diff / 60;
-      }
-      x += colWidth;
-    }
-
-    doc.text(totalHours.toFixed(2) + 'h', x + 5, startY);
-    startY += 5;
-
-    if (startY > 200) {
+  for (let day = 1; day <= 31; day++) {
+    if (startY > 180) {
       doc.addPage();
       startY = 20;
       doc.setFontSize(fontSize);
     }
+
+    doc.text(day.toString(), startX, startY);
+    
+    roleList.forEach((role, idx) => {
+      const shift = shiftsByDateRole[day] ? shiftsByDateRole[day][role] : null;
+      if (shift) {
+        const shiftText = `${shift.start}-${shift.end}`;
+        doc.text(shiftText, startX + firstColWidth + idx * colWidth, startY);
+
+        // Calcolo ore
+        const [sh, sm] = shift.start.split(':').map(Number);
+        const [eh, em] = shift.end.split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff < 0) diff += 24 * 60;
+        const hours = diff / 60;
+
+        if (!totalHoursByRole[role]) totalHoursByRole[role] = 0;
+        totalHoursByRole[role] += hours;
+      }
+    });
+
+    startY += 5;
   }
+
+  // Riga Totali
+  doc.text('Totale Ore', startX, startY);
+  roleList.forEach((role, idx) => {
+    const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
+    doc.text(total, startX + firstColWidth + idx * colWidth, startY);
+  });
 
   // Firma Collaboratore
   startY += 15;
@@ -470,7 +482,7 @@ async function exportPDF() {
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
-  // Salvataggio file
+  // Nome file dinamico
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
