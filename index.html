@@ -564,23 +564,26 @@ doc.text(fullName, 10, 22);
   }
 
   // --- Riepilogo Totali ---
-  startY += 3;
-  doc.setFontSize(6);
-  doc.text('Totali', startX + 2, startY);
+startY += 3;
+doc.setFontSize(6);
+doc.text('Totali', startX + 2, startY);
 
-  roleList.forEach((role, idx) => {
-    const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
-    doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
-  });
+roleList.forEach((role, idx) => {
+  const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
+  doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
+});
 
-  // --- Firma Collaboratore ---
-  startY += 12;
-  doc.setFontSize(10);
-  doc.text("Firma Collaboratore:", 10, startY);
-  startY += 5;
+// --- Chiudiamo la tabella sotto Totali ---
+doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
 
-  const signatureImage = canvas.toDataURL("image/png");
-  doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
+// --- Spazio per la firma ---
+startY += 12;
+doc.setFontSize(10);
+doc.text("Firma Collaboratore:", 10, startY);
+startY += 5;
+
+const signatureImage = canvas.toDataURL("image/png");
+doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
   // --- Nome file dinamico corretto ---
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
