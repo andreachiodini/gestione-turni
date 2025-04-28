@@ -482,15 +482,18 @@ async function exportPDF() {
 
   roleList.forEach((role, idx) => {
     const roleX = startX + firstColWidth + idx * colWidth;
-    const parts = role.split(' ');
-    const firstLine = parts.slice(0, -1).join(' ') || role;
-    const secondLine = parts.length > 1 ? parts.slice(-1)[0] : '';
 
-    doc.text(firstLine, roleX + 1, startY - 2);
-    if (secondLine) {
-      doc.text(secondLine, roleX + 1, startY + 1);
+    if (role.includes('FERIALE') || role.includes('FESTIVO')) {
+      const parts = role.split(' ');
+      const firstLine = parts.slice(0, parts.length - 1).join(' ');
+      const secondLine = parts[parts.length - 1];
+
+      doc.text(firstLine, roleX + 1, startY - 2);
+      doc.text(secondLine, roleX + 1, startY + 0.5);
+    } else {
+      doc.text(role, roleX + 1, startY);
     }
-  });
+});
 
   // ➡️ Corpo tabella
   let currentY = startY + rowHeight;
