@@ -486,12 +486,14 @@ doc.text(fullName, 10, 16);
 
   roleList.forEach((role, idx) => {
   const roleX = startX + firstColWidth + idx * colWidth;
-  let text = role.replace('FERIALE', '\nFERIALE').replace('FESTIVO', '\nFESTIVO');
+  const parts = role.split(' ');
+  
+  const firstLine = parts.slice(0, parts.length - 1).join(' '); // esempio: "Assistente bagnanti"
+  const secondLine = parts[parts.length - 1];                  // esempio: "FERIALE" o "FESTIVO"
 
-  doc.text(text, roleX + (colWidth / 2), startY, {
-    align: 'center',
-    maxWidth: colWidth - 2
-  });
+  doc.setFontSize(7);
+  doc.text(firstLine, roleX + (colWidth / 2), startY - 1.5, { align: 'center' });
+  doc.text(secondLine, roleX + (colWidth / 2), startY + 1, { align: 'center' });
 });
 
   startY += 7; // vai sotto intestazione per iniziare righe turni
