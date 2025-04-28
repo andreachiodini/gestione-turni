@@ -461,6 +461,16 @@ async function exportPDF() {
   doc.setFontSize(12);
   doc.text(`FOGLIO ORE DI ${month} ${year}   -   CENTRO FIN LAMPUGNANO`, 10, 15);
   doc.text(fullName, 10, 22);
+  // --- Firma Collaboratore in alto a destra ---
+doc.setFontSize(10);
+doc.text("Firma Collaboratore:", 200, 15);
+
+const signatureImage = canvas.toDataURL("image/png");
+doc.addImage(signatureImage, 'PNG', 200, 18, 60, 20);
+
+// Riquadro intorno alla firma
+doc.setLineWidth(0.2);
+doc.rect(200, 18, 60, 20);
 
   // --- Tabella setup ---
   let startY = 32; // 🔥 Tabella compatta
