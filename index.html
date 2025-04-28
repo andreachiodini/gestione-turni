@@ -463,7 +463,7 @@ async function exportPDF() {
   doc.text(fullName, 10, 22);
 
   // --- Tabella setup ---
-  let startY = 32; // 🔥 Compattato subito sotto il nome
+  let startY = 32; // 🔥 Tabella compatta
   const startX = 5;
   const firstColWidth = 25;
   const colWidth = 22;
@@ -513,17 +513,7 @@ async function exportPDF() {
   });
 
   const totalWidth = firstColWidth + colWidth * roleList.length;
-  let lineStartY = startY - 5;
-  let lineEndY = startY + 165;
-
-  doc.setLineWidth(0.1);
-  doc.line(startX, lineStartY, startX, lineEndY);
-  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, lineEndY);
-  roleList.forEach((role, idx) => {
-    const x = startX + firstColWidth + (idx + 1) * colWidth;
-    doc.line(x, lineStartY, x, lineEndY);
-  });
-
+  let headerY = startY - 5; // Salvo punto di partenza delle linee verticali
   startY += 9;
 
   const totalHoursByRole = {};
@@ -575,12 +565,13 @@ async function exportPDF() {
   // Linea sotto i Totali
   doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
 
-  // Linee verticali laterali complete
-  doc.line(startX, lineStartY, startX, startY + 1.5);
-  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, startY + 1.5);
+  // Linee verticali limitate dall'intestazione ai Totali
+  doc.line(startX, headerY, startX, startY + 1.5);
+  doc.line(startX + firstColWidth, headerY, startX + firstColWidth, startY + 1.5);
+
   roleList.forEach((role, idx) => {
     const x = startX + firstColWidth + (idx + 1) * colWidth;
-    doc.line(x, lineStartY, x, startY + 1.5);
+    doc.line(x, headerY, x, startY + 1.5);
   });
 
   // --- Firma Collaboratore ---
@@ -591,6 +582,10 @@ async function exportPDF() {
 
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
+
+  // --- Riquadro intorno alla firma
+  doc.setLineWidth(0.2);
+  doc.rect(10, startY, 80, 30);
 
   // --- Nome file dinamico ---
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
