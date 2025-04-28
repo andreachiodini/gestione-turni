@@ -436,24 +436,35 @@ function clearSignature() {
 // Esportazione PDF corretta
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
+  
+  // --- Controllo firma canvas ---
+  const blankCanvas = document.createElement('canvas');
+  blankCanvas.width = canvas.width;
+  blankCanvas.height = canvas.height;
+
+  if (canvas.toDataURL() === blankCanvas.toDataURL()) {
+    alert("⚠️ Devi prima firmare prima di esportare il PDF!");
+    return;
+  }
+
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
     format: 'a4'
   });
 
-  // --- Intestazione PDF ---
+  // --- Intestazione ---
   doc.setFontSize(14);
   doc.text('CENTRO FIN LAMPUGNANO', 40, 15);
 
   const now = new Date();
   const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
   const year = now.getFullYear();
-  
+
   doc.text(`FOGLIO ORE DI ${month} ${year}`, 40, 25);
   doc.text(fullName, 40, 35);
 
-  // --- Tabella dati ---
+  // --- Tabella setup ---
   let startY = 50;
   const startX = 5;
   const firstColWidth = 25;
@@ -489,7 +500,7 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
-  // Intestazione colonne
+  // --- Intestazione tabella ---
   doc.text('Data', startX + 2, startY);
   roleList.forEach((role, idx) => {
     const roleX = startX + firstColWidth + idx * colWidth;
@@ -550,6 +561,7 @@ async function exportPDF() {
     startY += 4.5;
   }
 
+  // --- Riepilogo Totali ---
   startY += 3;
   doc.setFontSize(6);
   doc.text('Totali', startX + 2, startY);
@@ -559,6 +571,7 @@ async function exportPDF() {
     doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
   });
 
+  // --- Firma Collaboratore ---
   startY += 12;
   doc.setFontSize(10);
   doc.text("Firma Collaboratore:", 10, startY);
@@ -567,7 +580,7 @@ async function exportPDF() {
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
-  // Nome file dinamico corretto
+  // --- Nome file dinamico corretto ---
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
