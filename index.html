@@ -419,6 +419,16 @@ function clearSignature() {
 // Esportazione PDF corretta
 async function exportPDF() {
     const { jsPDF } = window.jspdf;
+
+    // Verifica firma obbligatoria
+    const blankCanvas = document.createElement('canvas');
+    blankCanvas.width = canvas.width;
+    blankCanvas.height = canvas.height;
+    if (canvas.toDataURL() === blankCanvas.toDataURL()) {
+        alert("⚠️ Devi firmare prima di esportare il PDF!");
+        return;
+    }
+
     const doc = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
@@ -445,25 +455,25 @@ async function exportPDF() {
     doc.setFontSize(10);
     doc.text(fullName, startX, 25);
 
-    // 📋 Mansioni
-    const roleList = [
-        "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO",
-        "Cassa FERIALE", "Cassa FESTIVO",
-        "Rotazione FERIALE", "Rotazione FESTIVO",
-        "Istruttore FERIALE", "Istruttore FESTIVO",
-        "Aiuto allenatore FERIALE", "Aiuto allenatore FESTIVO",
-        "Sincro/Pallan FERIALE", "Sincro/Pallan FESTIVO",
-        "Acquagym FERIALE", "Acquagym FESTIVO",
-        "Baby istruttore FERIALE", "Baby istruttore FESTIVO",
-        "Baby aiuto allenatore FERIALE", "Baby aiuto allenatore FESTIVO",
-        "Neonatale FERIALE", "Neonatale FESTIVO",
-        "Preparto FERIALE", "Preparto FESTIVO",
-        "Lezione individuale FERIALE", "Lezione individuale FESTIVO",
-        "Propaganda FERIALE", "Propaganda FESTIVO",
-        "Segreteria FERIALE", "Segreteria FESTIVO",
-        "Coordinatore FERIALE", "Coordinatore FESTIVO",
-        "Aquagol/Salvamento FERIALE", "Aquagol/Salvamento FESTIVO"
-    ];
+    // 📋 Raccolta turni salvati
+    const rows = document.querySelectorAll('#shift-table tbody tr');
+    const shiftsByDateRole = {};
+    const allRoles = new Set();
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const date = new Date(cells[0].innerText);
+        const day = date.getDate();
+        const role = cells[3].innerText;
+        const start = cells[1].innerText;
+        const end = cells[2].innerText;
+
+        if (!shiftsByDateRole[day]) shiftsByDateRole[day] = {};
+        shiftsByDateRole[day][role] = { start, end };
+        allRoles.add(role);
+    });
+
+    const roleList = Array.from(allRoles); // 👈 Solo mansioni dove sono stati inseriti orari
 
     const totalWidth = firstColWidth + colWidth * roleList.length;
 
@@ -487,22 +497,44 @@ async function exportPDF() {
     // 📋 Linee della tabella
     doc.setDrawColor(0);
 
-    // Linea orizzontale sotto intestazione
+    // Linea sotto intestazione
     doc.line(startX, startY + rowHeight, startX + totalWidth, startY + rowHeight);
 
-    // Linee orizzontali giorni + Totali
+    // 📋 Scrittura giorni automatici + orari
+    let currentY = startY + rowHeight;
+    for (let day = 1; day <= 31; day++) {
+        doc.setFontSize(6);
+        doc.text(day.toString(), startX + firstColWidth / 2, currentY + 3, { align: 'center' });
+
+        roleList.forEach((role, idx) => {
+            const shift = shiftsByDateRole[day] ? shiftsByDateRole[day][role] : null;
+            if (shift) {
+                const shiftText = `${shift.start}-${shift.end}`;
+                doc.text(shiftText, startX + firstColWidth + idx * colWidth + colWidth / 2, currentY + 3, { align: 'center' });
+            }
+        });
+
+        currentY += rowHeight;
+    }
+
+    // 📋 Totali
+    doc.setFontSize(7);
+    doc.text('Totali', startX + firstColWidth / 2, currentY + 3, { align: 'center' });
+
+    // 📋 Linee orizzontali
     for (let i = 1; i <= 32; i++) {
         doc.line(startX, startY + (i + 1) * rowHeight, startX + totalWidth, startY + (i + 1) * rowHeight);
     }
 
-    // Linee verticali (solo dopo intestazione)
+    // 📋 Linee verticali
     let currentX = startX;
-    doc.line(currentX, startY, currentX, startY + (33 * rowHeight));
+    doc.line(currentX, startY, currentX, startY + rowHeight * 33);
     currentX += firstColWidth;
-    doc.line(currentX, startY, currentX, startY + (33 * rowHeight));
+    doc.line(currentX, startY, currentX, startY + rowHeight * 33);
+
     roleList.forEach(() => {
         currentX += colWidth;
-        doc.line(currentX, startY, currentX, startY + (33 * rowHeight));
+        doc.line(currentX, startY, currentX, startY + rowHeight * 33);
     });
 
     // 📋 Firma Collaboratore
