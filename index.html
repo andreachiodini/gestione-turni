@@ -370,12 +370,8 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  const logoBase64 = 'data:image/jpeg;base64,...'; // (Inserisci qui il logo base64 corretto)
-
-  // Header
-  doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15);
   doc.setFontSize(18);
-  doc.text('CENTRO FIN LAMPUGNANO', 70, 15);
+  doc.text('CENTRO FIN LAMPUGNANO', 40, 15); // 🔥 Spostato più a sinistra
   doc.setFontSize(14);
 
   const now = new Date();
@@ -384,10 +380,10 @@ async function exportPDF() {
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 70, 25);
-  doc.text(fullName, 70, 35);
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 40, 25);
+  doc.text(fullName, 40, 35);
 
-  // Tabella setup
+  // Tabella
   let startY = 50;
   const startX = 5;
   const firstColWidth = 25;
@@ -436,16 +432,14 @@ async function exportPDF() {
     }
   });
 
-  // Preparo punti per linee verticali
   const totalWidth = firstColWidth + colWidth * roleList.length;
   let lineStartY = startY - 5;
-  let lineEndY = startY + 165; // 🔥 spazio totale utile
+  let lineEndY = startY + 165;
 
   // Linee verticali
   doc.setLineWidth(0.1);
-  doc.line(startX, lineStartY, startX, lineEndY); // Linea bordo sinistro Data
-  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, lineEndY); // Linea dopo Data
-
+  doc.line(startX, lineStartY, startX, lineEndY);
+  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, lineEndY);
   roleList.forEach((role, idx) => {
     const x = startX + firstColWidth + (idx + 1) * colWidth;
     doc.line(x, lineStartY, x, lineEndY);
