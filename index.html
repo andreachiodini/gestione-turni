@@ -436,7 +436,7 @@ function clearSignature() {
 // Esportazione PDF corretta
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
-  
+
   // --- Controllo firma canvas ---
   const blankCanvas = document.createElement('canvas');
   blankCanvas.width = canvas.width;
@@ -453,21 +453,17 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  // --- Intestazione ---
+  // --- Intestazione compatta ---
   const now = new Date();
-const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
-const year = now.getFullYear();
+  const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
+  const year = now.getFullYear();
 
-doc.setFontSize(12);
-
-// Unisco su una sola riga
-doc.text(`FOGLIO ORE DI ${month} ${year}   -   CENTRO FIN LAMPUGNANO`, 10, 15);
-
-// Nome collaboratore sotto
-doc.text(fullName, 10, 22);
+  doc.setFontSize(12);
+  doc.text(`FOGLIO ORE DI ${month} ${year}   -   CENTRO FIN LAMPUGNANO`, 10, 15);
+  doc.text(fullName, 10, 22);
 
   // --- Tabella setup ---
-  let startY = 32;
+  let startY = 32; // 🔥 Compattato subito sotto il nome
   const startX = 5;
   const firstColWidth = 25;
   const colWidth = 22;
@@ -564,28 +560,39 @@ doc.text(fullName, 10, 22);
   }
 
   // --- Riepilogo Totali ---
-startY += 3;
-doc.setFontSize(6);
-doc.text('Totali', startX + 2, startY);
+  startY += 3;
+  doc.setFontSize(6);
+  doc.text('Totali', startX + 2, startY);
 
-roleList.forEach((role, idx) => {
-  const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
-  doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
-});
+  roleList.forEach((role, idx) => {
+    const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
+    doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
+  });
 
-// --- Chiudiamo la tabella sotto Totali ---
-doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
+  // --- Chiudiamo tutta la tabella dopo Totali ---
+  doc.setLineWidth(0.1);
 
-// --- Spazio per la firma ---
-startY += 12;
-doc.setFontSize(10);
-doc.text("Firma Collaboratore:", 10, startY);
-startY += 5;
+  // Linea sotto i Totali
+  doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
 
-const signatureImage = canvas.toDataURL("image/png");
-doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
+  // Linee verticali laterali complete
+  doc.line(startX, lineStartY, startX, startY + 1.5);
+  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, startY + 1.5);
+  roleList.forEach((role, idx) => {
+    const x = startX + firstColWidth + (idx + 1) * colWidth;
+    doc.line(x, lineStartY, x, startY + 1.5);
+  });
 
-  // --- Nome file dinamico corretto ---
+  // --- Firma Collaboratore ---
+  startY += 12;
+  doc.setFontSize(10);
+  doc.text("Firma Collaboratore:", 10, startY);
+  startY += 5;
+
+  const signatureImage = canvas.toDataURL("image/png");
+  doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
+
+  // --- Nome file dinamico ---
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
