@@ -558,9 +558,9 @@ async function exportPDF() {
   });
 
   // --- Firma Collaboratore ---
-  startY += 12;
-  doc.setFontSize(10);
-  doc.text("Firma Collaboratore:", 10, startY);
+  startY += 4;
+doc.setFontSize(10);
+doc.text("Firma Collaboratore:", 10, startY);
 
 // Firma accanto al testo
 const signatureImage = canvas.toDataURL("image/png");
