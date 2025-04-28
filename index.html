@@ -454,15 +454,17 @@ async function exportPDF() {
   });
 
   // --- Intestazione ---
-  doc.setFontSize(14);
-  doc.text('CENTRO FIN LAMPUGNANO', 40, 15);
-
   const now = new Date();
-  const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
-  const year = now.getFullYear();
+const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
+const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month} ${year}`, 40, 25);
-  doc.text(fullName, 40, 35);
+doc.setFontSize(12);
+
+// Unisco su una sola riga
+doc.text(`FOGLIO ORE DI ${month} ${year}   -   CENTRO FIN LAMPUGNANO`, 10, 15);
+
+// Nome collaboratore sotto
+doc.text(fullName, 10, 22);
 
   // --- Tabella setup ---
   let startY = 50;
