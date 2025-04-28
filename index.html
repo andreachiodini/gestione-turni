@@ -561,15 +561,15 @@ async function exportPDF() {
   startY += 12;
   doc.setFontSize(10);
   doc.text("Firma Collaboratore:", 10, startY);
-  startY += 5;
 
-  const signatureImage = canvas.toDataURL("image/png");
-  doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
+// Firma accanto al testo
+const signatureImage = canvas.toDataURL("image/png");
+doc.addImage(signatureImage, 'PNG', 60, startY - 4, 80, 20); 
 
-  // --- Riquadro intorno alla firma
-  doc.setLineWidth(0.2);
-  doc.rect(10, startY, 80, 30);
-
+// Riquadro intorno alla firma
+doc.setLineWidth(0.2);
+doc.rect(60, startY - 4, 80, 20);
+  
   // --- Nome file dinamico ---
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
