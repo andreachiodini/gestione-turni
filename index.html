@@ -420,13 +420,12 @@ function clearSignature() {
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
 
-  // --- Controllo firma canvas ---
+  // Controllo se firma presente
   const blankCanvas = document.createElement('canvas');
   blankCanvas.width = canvas.width;
   blankCanvas.height = canvas.height;
-
   if (canvas.toDataURL() === blankCanvas.toDataURL()) {
-    alert("⚠️ Devi prima firmare prima di esportare il PDF!");
+    alert("⚠️ Devi firmare prima di esportare il PDF!");
     return;
   }
 
@@ -436,30 +435,29 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  // --- Intestazione compatta ---
+  // Impostazioni generali
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const startX = 10;
+  let startY = 20;
+  const firstColWidth = 15; // larghezza colonna Data
+  const colWidth = 15; // larghezza colonna Mansioni
+  const rowHeight = 6; // altezza riga normale
+
   const now = new Date();
   const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
   const year = now.getFullYear();
 
-  doc.setFontSize(12);
-  doc.text(`FOGLIO ORE DI ${month} ${year}   -   CENTRO FIN LAMPUGNANO`, 10, 15);
-  doc.text(fullName, 10, 22);
+  // Intestazione sopra
+  doc.setFontSize(10);
+  doc.text(`FOGLIO ORE DI ${month} ${year} - CENTRO FIN LAMPUGNANO`, 10, 10);
 
-  // --- Tabella setup ---
-  let startY = 32; // 🔥 Tabella compatta
-  const startX = 5;
-  const firstColWidth = 25;
-  const colWidth = 22;
-  const fontSize = 5.5;
-  doc.setFontSize(fontSize);
+  doc.setFontSize(9);
+  doc.text(fullName, 10, 16);
 
-  const shiftsByDateRole = {};
+  // Preparazione dati turni
   const rows = document.querySelectorAll('#shift-table tbody tr');
-
-  if (rows.length === 0) {
-    alert("⚠️ Devi inserire almeno un turno prima di esportare il PDF!");
-    return;
-  }
+  const shiftsByDateRole = {};
+  const allRoles = new Set();
 
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
@@ -471,50 +469,40 @@ async function exportPDF() {
 
     if (!shiftsByDateRole[day]) shiftsByDateRole[day] = {};
     shiftsByDateRole[day][role] = { start, end };
-  });
-
-  const allRoles = new Set();
-  rows.forEach(row => {
-    const role = row.querySelectorAll('td')[3].innerText;
     allRoles.add(role);
   });
 
   const roleList = Array.from(allRoles);
-
   const totalWidth = firstColWidth + colWidth * roleList.length;
 
-  // 🔥 Sfondo grigio chiaro intestazione tabella
-doc.setFillColor(230, 230, 230);
-doc.rect(startX, startY - 4, totalWidth, 8, 'F');
+  // ➡️ Sfondo grigio intestazione
+  doc.setFillColor(230, 230, 230);
+  doc.rect(startX, startY - 4, totalWidth, 8, 'F');
 
-// Scrivi titoli tabella
-doc.text('Data', startX + 2, startY);
+  // ➡️ Scrittura intestazione
+  doc.setFontSize(7);
+  doc.setTextColor(0, 0, 0);
+  doc.text('Data', startX + 2, startY);
 
-roleList.forEach((role, idx) => {
-  const roleX = startX + firstColWidth + idx * colWidth;
-  const parts = role.split(' ');
-  const firstLine = parts.slice(0, -1).join(' ') || role;
-  const secondLine = parts.length > 1 ? parts.slice(-1)[0] : '';
+  roleList.forEach((role, idx) => {
+    const roleX = startX + firstColWidth + idx * colWidth;
+    const parts = role.split(' ');
+    const firstLine = parts.slice(0, -1).join(' ') || role;
+    const secondLine = parts.length > 1 ? parts.slice(-1)[0] : '';
 
-  doc.text(firstLine, roleX + 1, startY);
-  if (secondLine) {
-    doc.text(secondLine, roleX + 1, startY + 3.5);
-  }
-});
+    doc.text(firstLine, roleX + 1, startY);
+    if (secondLine) {
+      doc.text(secondLine, roleX + 1, startY + 3.5);
+    }
+  });
 
-  const totalWidth = firstColWidth + colWidth * roleList.length;
-  let headerY = startY - 5; // Salvo punto di partenza delle linee verticali
-  startY += 9;
+  startY += 7; // vai sotto intestazione per iniziare righe turni
 
   const totalHoursByRole = {};
 
+  // ➡️ Inserimento dati turni
   for (let day = 1; day <= 31; day++) {
-    if (startY > 190) {
-      doc.addPage();
-      startY = 20;
-      doc.setFontSize(fontSize);
-    }
-
+    doc.setFontSize(6);
     doc.text(day.toString(), startX + 2, startY);
 
     roleList.forEach((role, idx) => {
@@ -536,12 +524,12 @@ roleList.forEach((role, idx) => {
 
     doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
 
-    startY += 4.5;
+    startY += rowHeight;
   }
 
-  // --- Riepilogo Totali ---
-  startY += 3;
-  doc.setFontSize(6);
+  // ➡️ Riepilogo Totali
+  startY += 2;
+  doc.setFontSize(7);
   doc.text('Totali', startX + 2, startY);
 
   roleList.forEach((role, idx) => {
@@ -549,35 +537,27 @@ roleList.forEach((role, idx) => {
     doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
   });
 
-  // --- Chiudiamo tutta la tabella dopo Totali ---
+  // ➡️ Linee della tabella
+  doc.setDrawColor(0);
   doc.setLineWidth(0.1);
+  for (let i = 0; i <= roleList.length + 1; i++) {
+    const x = startX + (i === 0 ? 0 : firstColWidth + (i - 1) * colWidth);
+    doc.line(x, 16, x, startY + 2);
+  }
+  doc.line(startX, 16, startX + totalWidth, 16);
 
-  // Linea sotto i Totali
-  doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
+  // ➡️ Firma collaboratore accanto al testo
+  startY += 12;
+  doc.setFontSize(8);
+  doc.text("Firma Collaboratore:", 10, startY);
 
-  // Linee verticali limitate dall'intestazione ai Totali
-  doc.line(startX, headerY, startX, startY + 1.5);
-  doc.line(startX + firstColWidth, headerY, startX + firstColWidth, startY + 1.5);
+  const signatureImage = canvas.toDataURL("image/png");
+  doc.addImage(signatureImage, 'PNG', 60, startY - 5, 60, 20);
 
-  roleList.forEach((role, idx) => {
-    const x = startX + firstColWidth + (idx + 1) * colWidth;
-    doc.line(x, headerY, x, startY + 1.5);
-  });
+  doc.setLineWidth(0.2);
+  doc.rect(60, startY - 5, 60, 20);
 
-  // --- Firma Collaboratore ---
-  startY += 8;
-doc.setFontSize(10);
-doc.text("Firma Collaboratore:", 10, startY);
-
-// Firma accanto al testo
-const signatureImage = canvas.toDataURL("image/png");
-doc.addImage(signatureImage, 'PNG', 60, startY - 4, 80, 20); 
-
-// Riquadro intorno alla firma
-doc.setLineWidth(0.2);
-doc.rect(60, startY - 4, 80, 20);
-  
-  // --- Nome file dinamico ---
+  // ➡️ Salvataggio PDF
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
