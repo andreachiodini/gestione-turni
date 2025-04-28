@@ -86,21 +86,19 @@
 
 <h1>Gestione Turni Collaboratori</h1>
 
-<!-- Login Form -->
-<div id="login-form">
-  <h2>Accedi</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Accedi</button>
-  <div id="error-message"></div>
-
-  <div id="reset-password-section" style="margin-top: 30px;">
-    <h3>Password dimenticata?</h3>
-    <input type="email" id="reset-email" placeholder="Inserisci la tua email">
-    <button onclick="sendResetEmail()">Invia Email di Reset</button>
-    <div id="reset-message"></div>
+< <!-- Sezione Login -->
+  <div id="login-section">
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Email"><br><br>
+    <input type="password" id="password" placeholder="Password"><br><br>
+    <button onclick="login()">Accedi</button>
+    <button onclick="showResetPassword()">Reset Password</button>
+    <div id="reset-section" style="display:none;">
+      <h3>Reset Password</h3>
+      <input type="email" id="resetEmail" placeholder="Inserisci email"><br><br>
+      <button onclick="sendPasswordReset()">Invia reset</button>
+    </div>
   </div>
-</div>
 
 <!-- Area Turni -->
 <div id="shift-section" style="display:none;">
