@@ -454,9 +454,6 @@ async function exportPDF() {
   doc.setFontSize(9);
 doc.text(fullName, 10, 16);
 
-// 🔥 Piccolo spazio extra sotto il nome
-let startY = 26;
-
   // Preparazione dati turni
   const rows = document.querySelectorAll('#shift-table tbody tr');
   const shiftsByDateRole = {};
