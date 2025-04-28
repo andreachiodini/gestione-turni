@@ -13,92 +13,39 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-
-    h1 {
-      font-size: 24px;
-      text-align: center;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    #shift-table th, #shift-table td {
-      padding: 2px 4px;
-      font-size: 12px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-
-    /* Righe zebrate */
-    #shift-table tbody tr:nth-child(odd) {
-      background-color: #ffffff;
-    }
-
-    #shift-table tbody tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-
-    #summary-table th, #summary-table td {
-      padding: 6px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      border-radius: 5px;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    input, select {
-      padding: 8px;
-      margin: 5px 0;
-      font-size: 14px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    #signature-pad {
-      margin-top: 10px;
-      border: 1px solid black;
-    }
-
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+    #login-form, #shift-section { max-width: 1200px; margin: 0 auto; }
+    input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { border: 1px solid #cccccc; padding: 8px; text-align: center; font-size: 10px; }
+    #error-message, #password-message, #reset-message { color: red; margin-top: 10px; }
+    details summary { cursor: pointer; font-weight: bold; margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
+    .summary-table { margin-top: 30px; text-align: left; }
+    canvas { border: 1px solid #ccc; margin-top: 20px; }
+    h1 { margin-bottom: 20px; }
+    #shift-content { margin-top: 20px; }
   </style>
-</head>
 
+</head>
 <body>
 
 <h1>Gestione Turni Collaboratori</h1>
 
-< <!-- Sezione Login -->
-  <div id="login-section">
-    <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email"><br><br>
-    <input type="password" id="password" placeholder="Password"><br><br>
-    <button onclick="login()">Accedi</button>
-    <button onclick="showResetPassword()">Reset Password</button>
-    <div id="reset-section" style="display:none;">
-      <h3>Reset Password</h3>
-      <input type="email" id="resetEmail" placeholder="Inserisci email"><br><br>
-      <button onclick="sendPasswordReset()">Invia reset</button>
-    </div>
+<!-- Login Form -->
+<div id="login-form">
+  <h2>Accedi</h2>
+  <input type="email" id="username" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Accedi</button>
+  <div id="error-message"></div>
+
+  <div id="reset-password-section" style="margin-top: 30px;">
+    <h3>Password dimenticata?</h3>
+    <input type="email" id="reset-email" placeholder="Inserisci la tua email">
+    <button onclick="sendResetEmail()">Invia Email di Reset</button>
+    <div id="reset-message"></div>
   </div>
+</div>
 
 <!-- Area Turni -->
 <div id="shift-section" style="display:none;">
@@ -147,7 +94,7 @@
     </div>
 
     <h3>Firma Collaboratore</h3>
-    <canvas id="signature-canvas" width="500" height="100" style="border: 2px solid #000; border-radius: 4px;"></canvas><br>
+    <canvas id="signature-canvas" width="300" height="100"></canvas><br>
     <button onclick="clearSignature()" style="margin-top: 10px;">Pulisci Firma</button>
     <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Foglio Ore in PDF</button>
 
@@ -189,23 +136,6 @@ const filterRoleSelect = document.getElementById('filter-role');
 const canvas = document.getElementById('signature-canvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
-  
-  // --- Attiva firma a mano libera sul canvas
-canvas.addEventListener('mousedown', () => drawing = true);
-canvas.addEventListener('mouseup', () => {
-  drawing = false;
-  ctx.beginPath();
-});
-canvas.addEventListener('mousemove', e => {
-  if (!drawing) return;
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = 'black';
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-});
 
 // Lista mansioni
 const mansions = [
@@ -434,44 +364,23 @@ function clearSignature() {
 // Esportazione PDF corretta
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
-
-  // --- Controllo firma canvas ---
-  const blankCanvas = document.createElement('canvas');
-  blankCanvas.width = canvas.width;
-  blankCanvas.height = canvas.height;
-
-  if (canvas.toDataURL() === blankCanvas.toDataURL()) {
-    alert("⚠️ Devi prima firmare prima di esportare il PDF!");
-    return;
-  }
-
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
     format: 'a4'
   });
 
-  // --- Intestazione compatta ---
-  const now = new Date();
-  const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
-  const year = now.getFullYear();
+  // Impostazioni font uniformi
+  const headerFontSize = 14; // 🔥 Font unico per intestazioni
 
-  doc.setFontSize(12);
-  doc.text(`FOGLIO ORE DI ${month} ${year}   -   CENTRO FIN LAMPUGNANO`, 10, 15);
-  doc.text(fullName, 10, 22);
-  // --- Firma Collaboratore in alto a destra ---
-doc.setFontSize(10);
-doc.text("Firma Collaboratore:", 200, 15);
+  // Titoli
+  doc.setFontSize(headerFontSize);
+  doc.text('CENTRO FIN LAMPUGNANO', 40, 15);
+  doc.text(`FOGLIO ORE DI ${new Date().toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase()}`, 40, 25);
+  doc.text(fullName, 40, 35);
 
-const signatureImage = canvas.toDataURL("image/png");
-doc.addImage(signatureImage, 'PNG', 200, 18, 60, 20);
-
-// Riquadro intorno alla firma
-doc.setLineWidth(0.2);
-doc.rect(200, 18, 60, 20);
-
-  // --- Tabella setup ---
-  let startY = 32; // 🔥 Tabella compatta
+  // Tabella
+  let startY = 50;
   const startX = 5;
   const firstColWidth = 25;
   const colWidth = 22;
@@ -480,9 +389,8 @@ doc.rect(200, 18, 60, 20);
 
   const shiftsByDateRole = {};
   const rows = document.querySelectorAll('#shift-table tbody tr');
-
   if (rows.length === 0) {
-    alert("⚠️ Devi inserire almeno un turno prima di esportare il PDF!");
+    alert("Nessun turno da esportare!");
     return;
   }
 
@@ -506,7 +414,7 @@ doc.rect(200, 18, 60, 20);
 
   const roleList = Array.from(allRoles);
 
-  // --- Intestazione tabella ---
+  // Scrive intestazioni
   doc.text('Data', startX + 2, startY);
   roleList.forEach((role, idx) => {
     const roleX = startX + firstColWidth + idx * colWidth;
@@ -521,7 +429,18 @@ doc.rect(200, 18, 60, 20);
   });
 
   const totalWidth = firstColWidth + colWidth * roleList.length;
-  let headerY = startY - 5; // Salvo punto di partenza delle linee verticali
+  let lineStartY = startY - 5;
+  let lineEndY = startY + 165;
+
+  // Linee verticali
+  doc.setLineWidth(0.1);
+  doc.line(startX, lineStartY, startX, lineEndY);
+  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, lineEndY);
+  roleList.forEach((role, idx) => {
+    const x = startX + firstColWidth + (idx + 1) * colWidth;
+    doc.line(x, lineStartY, x, lineEndY);
+  });
+
   startY += 9;
 
   const totalHoursByRole = {};
@@ -552,12 +471,13 @@ doc.rect(200, 18, 60, 20);
       }
     });
 
+    // Linea orizzontale dopo ogni giorno
     doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
 
     startY += 4.5;
   }
 
-  // --- Riepilogo Totali ---
+  // Riga Totali
   startY += 3;
   doc.setFontSize(6);
   doc.text('Totali', startX + 2, startY);
@@ -567,22 +487,7 @@ doc.rect(200, 18, 60, 20);
     doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
   });
 
-  // --- Chiudiamo tutta la tabella dopo Totali ---
-  doc.setLineWidth(0.1);
-
-  // Linea sotto i Totali
-  doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
-
-  // Linee verticali limitate dall'intestazione ai Totali
-  doc.line(startX, headerY, startX, startY + 1.5);
-  doc.line(startX + firstColWidth, headerY, startX + firstColWidth, startY + 1.5);
-
-  roleList.forEach((role, idx) => {
-    const x = startX + firstColWidth + (idx + 1) * colWidth;
-    doc.line(x, headerY, x, startY + 1.5);
-  });
-
-  // --- Firma Collaboratore ---
+  // Firma Collaboratore
   startY += 12;
   doc.setFontSize(10);
   doc.text("Firma Collaboratore:", 10, startY);
@@ -591,11 +496,6 @@ doc.rect(200, 18, 60, 20);
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
-  // --- Riquadro intorno alla firma
-  doc.setLineWidth(0.2);
-  doc.rect(10, startY, 80, 30);
-
-  // --- Nome file dinamico ---
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
