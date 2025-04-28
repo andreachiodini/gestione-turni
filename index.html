@@ -418,163 +418,79 @@ function clearSignature() {
 
 // Esportazione PDF corretta
 async function exportPDF() {
-  const { jsPDF } = window.jspdf;
-
-  // Controllo se firma presente
-  const blankCanvas = document.createElement('canvas');
-  blankCanvas.width = canvas.width;
-  blankCanvas.height = canvas.height;
-  if (canvas.toDataURL() === blankCanvas.toDataURL()) {
-    alert("⚠️ Devi firmare prima di esportare il PDF!");
-    return;
-  }
-
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  // Impostazioni generali
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const startX = 10;
-  let startY = 30;
-  const firstColWidth = 15; // larghezza colonna Data
-  const colWidth = 25; // larghezza colonna Mansioni
-  const rowHeight = 4; // altezza riga normale
-
-  const now = new Date();
-  const month = now.toLocaleString('it-IT', { month: 'long' }).toUpperCase();
-  const year = now.getFullYear();
-
-  // Intestazione sopra
-  doc.setFontSize(10);
-  doc.text(`FOGLIO ORE DI ${month} ${year} - CENTRO FIN LAMPUGNANO`, 10, 10);
-
-  doc.setFontSize(9);
-doc.text(fullName, 10, 16);
-
-  // Preparazione dati turni
-  const rows = document.querySelectorAll('#shift-table tbody tr');
-  const shiftsByDateRole = {};
-  const allRoles = new Set();
-
-  rows.forEach(row => {
-    const cells = row.querySelectorAll('td');
-    const date = new Date(cells[0].innerText);
-    const day = date.getDate();
-    const role = cells[3].innerText;
-    const start = cells[1].innerText;
-    const end = cells[2].innerText;
-
-    if (!shiftsByDateRole[day]) shiftsByDateRole[day] = {};
-    shiftsByDateRole[day][role] = { start, end };
-    allRoles.add(role);
-  });
-
-  const roleList = Array.from(allRoles);
-  const totalWidth = firstColWidth + colWidth * roleList.length;
-
-  // ➡️ Sfondo grigio intestazione
-  doc.setFillColor(230, 230, 230);
-  doc.rect(startX, startY - 4, totalWidth, 8, 'F');
-
-  // ➡️ Scrittura intestazione
-  doc.setFontSize(7);
-  doc.setTextColor(0, 0, 0);
-  doc.text('Data', startX + 2, startY);
-
-  roleList.forEach((role, idx) => {
-  const roleX = startX + firstColWidth + idx * colWidth;
-  const parts = role.split(' ');
-  
-  const firstLine = parts.slice(0, parts.length - 1).join(' '); // esempio: "Assistente bagnanti"
-  const secondLine = parts[parts.length - 1];                  // esempio: "FERIALE" o "FESTIVO"
-
-  doc.setFontSize(7);
-  doc.text(firstLine, roleX + (colWidth / 2), startY - 1.5, { align: 'center' });
-  doc.text(secondLine, roleX + (colWidth / 2), startY + 1, { align: 'center' });
-});
-
-  startY += 7; // vai sotto intestazione per iniziare righe turni
-
-  const totalHoursByRole = {};
-
-  // ➡️ Inserimento dati turni
-  for (let day = 1; day <= 31; day++) {
-    doc.setFontSize(6);
-    doc.text(day.toString(), startX + 2, startY);
-
-    roleList.forEach((role, idx) => {
-      const shift = shiftsByDateRole[day] ? shiftsByDateRole[day][role] : null;
-      if (shift) {
-        const shiftText = `${shift.start}-${shift.end}`;
-        doc.text(shiftText, startX + firstColWidth + idx * colWidth + 2, startY);
-
-        const [sh, sm] = shift.start.split(':').map(Number);
-        const [eh, em] = shift.end.split(':').map(Number);
-        let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60;
-        const hours = diff / 60;
-
-        if (!totalHoursByRole[role]) totalHoursByRole[role] = 0;
-        totalHoursByRole[role] += hours;
-      }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
     });
 
-    doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
+    // 📋 Impostazioni base
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+    const firstColWidth = 15;
+    const colWidth = 15;
+    const rowHeight = 6;
+    const startX = margin;
+    let startY = 30;
 
-    startY += rowHeight;
-  }
+    // 📋 Titolo
+    doc.setFontSize(14);
+    doc.text("FOGLIO ORE DI APRILE 2025 - CENTRO FIN LAMPUGNANO", pageWidth / 2, 15, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(fullName, startX, 25);
 
-  // ➡️ Riepilogo Totali
-  startY += 2;
-  doc.setFontSize(7);
-  doc.text('Totali', startX + 2, startY);
+    // 📋 Colonne
+    const roleList = ["Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO"]; // ← QUI devi mettere tutte le mansioni
 
-  roleList.forEach((role, idx) => {
-    const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
-    doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
-  });
+    const totalWidth = firstColWidth + colWidth * roleList.length;
 
-// Linee orizzontali
-doc.setDrawColor(0);
+    // 📋 Sfondo grigio intestazione
+    doc.setFillColor(220, 220, 220);
+    doc.rect(startX, startY, totalWidth, rowHeight, 'F');
 
-// Linea sotto l'intestazione
-doc.line(startX, startY + rowHeight, startX + totalWidth, startY + rowHeight);
+    // 📋 Scrittura intestazione
+    doc.setFontSize(7);
+    doc.text('Data', startX + firstColWidth / 2, startY + 4, { align: 'center' });
 
-// Linee orizzontali fino a 31 giorni + riga Totali
-for (let i = 1; i <= 32; i++) { 
-  doc.line(startX, startY + rowHeight * (i + 1), startX + totalWidth, startY + rowHeight * (i + 1));
-}
+    roleList.forEach((role, idx) => {
+        const roleX = startX + firstColWidth + idx * colWidth;
+        const parts = role.split(' ');
+        const firstLine = parts.slice(0, -1).join(' ');
+        const secondLine = parts.slice(-1)[0];
+        doc.text(firstLine, roleX + colWidth / 2, startY + 2.5, { align: 'center' });
+        doc.text(secondLine, roleX + colWidth / 2, startY + 5, { align: 'center' });
+    });
 
-// Linee verticali (solo fino alla riga Totali)
-let currentX = startX;
-doc.line(currentX, startY + rowHeight, currentX, startY + rowHeight * 33);
-currentX += firstColWidth;
-doc.line(currentX, startY + rowHeight, currentX, startY + rowHeight * 33);
+    // 📋 Linee tabella
+    doc.setDrawColor(0);
 
-roleList.forEach(() => {
-  currentX += colWidth;
-  doc.line(currentX, startY + rowHeight, currentX, startY + rowHeight * 33);
-});
+    // Linea sotto intestazione
+    doc.line(startX, startY + rowHeight, startX + totalWidth, startY + rowHeight);
 
-  // ➡️ Firma collaboratore accanto al testo
-  startY += 12;
-  doc.setFontSize(8);
-  doc.text("Firma Collaboratore:", 10, startY);
+    // Linee orizzontali giorni
+    for (let i = 1; i <= 32; i++) { 
+        doc.line(startX, startY + rowHeight * (i + 1), startX + totalWidth, startY + rowHeight * (i + 1));
+    }
 
-  const signatureImage = canvas.toDataURL("image/png");
-  doc.addImage(signatureImage, 'PNG', 60, startY - 5, 60, 20);
+    // Linee verticali
+    let currentX = startX;
+    doc.line(currentX, startY, currentX, startY + rowHeight * 33);
+    currentX += firstColWidth;
+    doc.line(currentX, startY, currentX, startY + rowHeight * 33);
 
-  doc.setLineWidth(0.2);
-  doc.rect(60, startY - 5, 60, 20);
+    roleList.forEach(() => {
+        currentX += colWidth;
+        doc.line(currentX, startY, currentX, startY + rowHeight * 33);
+    });
 
-  // ➡️ Salvataggio PDF
-  const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
-  const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
+    // 📋 Firma Collaboratore
+    doc.setFontSize(10);
+    doc.text('Firma Collaboratore:', startX, startY + rowHeight * 34 + 5);
+    doc.rect(startX + 35, startY + rowHeight * 34, 60, 20); // rettangolo firma
 
-  doc.save(fileName);
+    // ✅ Fine
 }
 </script>
 </body>
