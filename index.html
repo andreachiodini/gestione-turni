@@ -537,14 +537,28 @@ doc.text(fullName, 10, 16);
     doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
   });
 
-  // ➡️ Linee della tabella
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.1);
-  for (let i = 0; i <= roleList.length + 1; i++) {
-    const x = startX + (i === 0 ? 0 : firstColWidth + (i - 1) * colWidth);
-    doc.line(x, 16, x, startY + 2);
-  }
-  doc.line(startX, 16, startX + totalWidth, 16);
+  // Linee orizzontali + verticali (Senza disturbare l'intestazione)
+
+doc.setDrawColor(0);
+
+// Linea orizzontale sotto l'intestazione
+doc.line(startX, startY + rowHeight, startX + totalWidth, startY + rowHeight);
+
+// Linee orizzontali ogni giorno
+for (let i = 1; i <= 31; i++) {
+  doc.line(startX, startY + rowHeight * (i + 1), startX + totalWidth, startY + rowHeight * (i + 1));
+}
+
+// Linee verticali solo sotto l'intestazione
+let currentX = startX;
+doc.line(currentX, startY + rowHeight, currentX, startY + rowHeight * 33);
+currentX += firstColWidth;
+doc.line(currentX, startY + rowHeight, currentX, startY + rowHeight * 33);
+
+roleList.forEach(() => {
+  currentX += colWidth;
+  doc.line(currentX, startY + rowHeight, currentX, startY + rowHeight * 33);
+});
 
   // ➡️ Firma collaboratore accanto al testo
   startY += 12;
