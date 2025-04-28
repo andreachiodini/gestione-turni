@@ -370,12 +370,12 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  const logoBase64 = 'data:image/jpeg;base64,...'; // Inserisci qui il logo base64 corretto
+  const logoBase64 = 'data:image/jpeg;base64,...'; // Inserisci il logo base64 corretto
 
   // Header
   doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15);
   doc.setFontSize(18);
-  doc.text('CENTRO FIN LAMPUGNANO', 50, 15);
+  doc.text('CENTRO FIN LAMPUGNANO', 60, 15);
   doc.setFontSize(14);
 
   const now = new Date();
@@ -384,18 +384,19 @@ async function exportPDF() {
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 50, 25);
-  doc.text(fullName, 50, 35);
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 60, 25);
+  doc.text(fullName, 60, 35);
 
   // Tabella setup
-  let startY = 45;
+  let startY = 50;
   const startX = 5;
-  const firstColWidth = 10; // larghezza colonna "Data"
-  const colWidth = 20; // larghezza ogni mansione
-  const fontSize = 7; // font piccolo
+  const firstColWidth = 20; // 🔥 Allargato la colonna "Data" da 10mm a 20mm
+  const colWidth = 20; // larghezza mansione
+  const fontSize = 7; // font piccolo ordinato
+
   doc.setFontSize(fontSize);
 
-  // Raccogli i turni
+  // Raccolta turni
   const shiftsByDateRole = {};
 
   const rows = document.querySelectorAll('#shift-table tbody tr');
@@ -408,7 +409,7 @@ async function exportPDF() {
     const cells = row.querySelectorAll('td');
     const date = new Date(cells[0].innerText);
     const day = date.getDate();
-    const role = cells[3].innerText;
+    const role = cells[3].innerText; // 🔥 Manteniamo il nome completo (FERIALE/FESTIVO)
     const start = cells[1].innerText;
     const end = cells[2].innerText;
 
@@ -416,7 +417,7 @@ async function exportPDF() {
     shiftsByDateRole[day][role] = { start, end };
   });
 
-  // Prendiamo tutte le mansioni usate
+  // Prendiamo tutte le mansioni
   const allRoles = new Set();
   rows.forEach(row => {
     const role = row.querySelectorAll('td')[3].innerText;
@@ -425,10 +426,14 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
-  // Intestazione tabella
+  // Intestazione
   doc.text('Data', startX, startY);
   roleList.forEach((role, idx) => {
-    doc.text(role.substring(0, 10), startX + firstColWidth + idx * colWidth, startY); // taglio se troppo lungo
+    let shortRole = role;
+    if (role.length > 15) {
+      shortRole = role.substring(0, 15) + '...'; // Tagliamo solo se è troppo lungo
+    }
+    doc.text(shortRole, startX + firstColWidth + idx * colWidth, startY);
   });
 
   startY += 6;
@@ -444,14 +449,13 @@ async function exportPDF() {
     }
 
     doc.text(day.toString(), startX, startY);
-    
+
     roleList.forEach((role, idx) => {
       const shift = shiftsByDateRole[day] ? shiftsByDateRole[day][role] : null;
       if (shift) {
         const shiftText = `${shift.start}-${shift.end}`;
         doc.text(shiftText, startX + firstColWidth + idx * colWidth, startY);
 
-        // Calcolo ore
         const [sh, sm] = shift.start.split(':').map(Number);
         const [eh, em] = shift.end.split(':').map(Number);
         let diff = (eh * 60 + em) - (sh * 60 + sm);
@@ -467,7 +471,9 @@ async function exportPDF() {
   }
 
   // Riga Totali
-  doc.text('Totale Ore', startX, startY);
+  startY += 3;
+  doc.text('Totali', startX, startY); // 🔥 Scritta "Totali" semplice che non si sovrappone
+
   roleList.forEach((role, idx) => {
     const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
     doc.text(total, startX + firstColWidth + idx * colWidth, startY);
