@@ -364,30 +364,35 @@ function clearSignature() {
 // Esportazione PDF corretta
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('landscape'); // Formato orizzontale
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a3' // 🔥 Superficie molto più larga!
+  });
 
-  const logoBase64 = 'data:image/jpeg;base64,...'; // Inserisci il logo base64 vero
+  const logoBase64 = 'data:image/jpeg;base64,...'; // (inserisci qui il logo base64 vero)
 
   // Header
-  doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15); // 🔥 Margine sinistro ridotto
+  doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15);
+  doc.setFontSize(22);
+  doc.text('CENTRO FIN LAMPUGNANO', 50, 20);
   doc.setFontSize(16);
-  doc.text('CENTRO FIN LAMPUGNANO', 50, 15);
-  doc.setFontSize(12);
+
   const now = new Date();
   const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                       "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 50, 25);
-  doc.text(fullName, 50, 35);
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 50, 30);
+  doc.text(fullName, 50, 40);
 
-  // Tabella impostazioni
-  let startY = 45;
+  // Tabella
+  let startY = 50;
   const startX = 5;
-  const colWidth = 12; // 🔥 Più largo
-  const mansioneColWidth = 45;
-  const fontSize = 7; // 🔥 Font più piccolo
+  const colWidth = 12; // Colonne belle larghe
+  const mansioneColWidth = 50; // Larghezza colonna "Mansione"
+  const fontSize = 7; // Font più piccolo e ordinato
 
   doc.setFontSize(fontSize);
 
@@ -407,6 +412,7 @@ async function exportPDF() {
     return;
   }
 
+  // Raggruppa turni per mansione
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
     const date = new Date(cells[0].innerText);
@@ -420,6 +426,7 @@ async function exportPDF() {
     shiftsByRole[role][day] = { start, end };
   });
 
+  // Scrive ogni riga
   for (const role in shiftsByRole) {
     let x = startX;
     doc.text(role, x, startY);
@@ -437,7 +444,7 @@ async function exportPDF() {
         const [eh, em] = shift.end.split(':').map(Number);
 
         let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60;
+        if (diff < 0) diff += 24 * 60; // Turni che passano la mezzanotte
 
         totalHours += diff / 60;
       }
@@ -447,14 +454,14 @@ async function exportPDF() {
     doc.text(totalHours.toFixed(2) + 'h', x + 5, startY);
     startY += 5;
 
-    if (startY > 190) {
+    if (startY > 200) {
       doc.addPage();
       startY = 20;
       doc.setFontSize(fontSize);
     }
   }
 
-  // Firma
+  // Firma Collaboratore
   startY += 15;
   doc.setFontSize(10);
   doc.text("Firma Collaboratore:", 10, startY);
@@ -463,12 +470,12 @@ async function exportPDF() {
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
+  // Salvataggio file
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
   doc.save(fileName);
 }
-
 </script>
 </body>
 </html>
