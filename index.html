@@ -538,13 +538,13 @@ async function exportPDF() {
     });
 
     // 📋 Firma Collaboratore
-    const signatureY = startY + (34 * rowHeight) + 10;
-    doc.setFontSize(9);
-    doc.text('Firma Collaboratore:', startX, signatureY);
+    const signatureY = startY + (34 * rowHeight) - 5; // 🔥 firma più in alto
+doc.setFontSize(9);
+doc.text('Firma Collaboratore:', startX, signatureY);
 
-    const signatureImage = canvas.toDataURL('image/png');
-    doc.addImage(signatureImage, 'PNG', startX + 35, signatureY - 5, 50, 20);
-    doc.rect(startX + 35, signatureY - 5, 50, 20); // rettangolo firma
+const signatureImage = canvas.toDataURL('image/png');
+doc.addImage(signatureImage, 'PNG', startX + 35, signatureY - 5, 50, 20);
+doc.rect(startX + 35, signatureY - 5, 50, 20); // rettangolo firma
 
     // 📋 Salvataggio
     const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
