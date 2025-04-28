@@ -179,6 +179,40 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
+  const roleList = [
+  "Assistente bagnanti FERIALE",
+  "Assistente bagnanti FESTIVO",
+  "Cassa FERIALE",
+  "Cassa FESTIVO",
+  "Rotazione FERIALE",
+  "Rotazione FESTIVO",
+  "Istruttore FERIALE",
+  "Istruttore FESTIVO",
+  "Aiuto allenatore FERIALE",
+  "Aiuto allenatore FESTIVO",
+  "Sincro/Pallan FERIALE",
+  "Sincro/Pallan FESTIVO",
+  "Acquagym FERIALE",
+  "Acquagym FESTIVO",
+  "Baby istruttore FERIALE",
+  "Baby istruttore FESTIVO",
+  "Baby aiuto allenatore FERIALE",
+  "Baby aiuto allenatore FESTIVO",
+  "Neonatale FERIALE",
+  "Neonatale FESTIVO",
+  "Preparto FERIALE",
+  "Preparto FESTIVO",
+  "Lezione individuale FERIALE",
+  "Lezione individuale FESTIVO",
+  "Propaganda FERIALE",
+  "Propaganda FESTIVO",
+  "Segreteria FERIALE",
+  "Segreteria FESTIVO",
+  "Coordinatore FERIALE",
+  "Coordinatore FESTIVO",
+  "Aquagol/Salvamento FERIALE",
+  "Aquagol/Salvamento FESTIVO"
+];
 
 let currentUser = "";
 let fullName = "";
