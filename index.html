@@ -370,7 +370,7 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  const logoBase64 = 'data:image/jpeg;base64,...'; // (Inserisci qui il logo base64 vero)
+  const logoBase64 = 'data:image/jpeg;base64,...'; // (inserisci qui il tuo logo base64 corretto)
 
   // Header
   doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15);
@@ -390,14 +390,12 @@ async function exportPDF() {
   // Tabella
   let startY = 50;
   const startX = 5;
-  const firstColWidth = 25; // 🔥 colonna "Data" larga
-  const colWidth = 12; // 🔥 ogni mansione stretta ma leggibile
-  const fontSize = 6; // 🔥 font piccolo per tutto il foglio su A4
+  const firstColWidth = 25; // colonna "Data" larga
+  const colWidth = 15; // 🔥 colonna mansioni più larga
+  const fontSize = 6; // font piccolo compatto
   doc.setFontSize(fontSize);
 
-  // Raccogli turni
   const shiftsByDateRole = {};
-
   const rows = document.querySelectorAll('#shift-table tbody tr');
   if (rows.length === 0) {
     alert("Nessun turno da esportare!");
@@ -428,20 +426,33 @@ async function exportPDF() {
   // Scrive intestazioni
   doc.text('Data', startX, startY);
   roleList.forEach((role, idx) => {
-    let displayRole = role;
-    if (displayRole.length > 10) {
-      displayRole = displayRole.substring(0, 10) + '..'; // 🔥 abbreviazione intelligente
+    const roleX = startX + firstColWidth + idx * colWidth;
+    const words = role.split(' ');
+    let firstLine = '';
+    let secondLine = '';
+
+    if (words.length > 1) {
+      const mid = Math.ceil(words.length / 2);
+      firstLine = words.slice(0, mid).join(' ');
+      secondLine = words.slice(mid).join(' ');
+    } else {
+      firstLine = role;
+      secondLine = '';
     }
-    doc.text(displayRole, startX + firstColWidth + idx * colWidth, startY);
+
+    doc.text(firstLine, roleX, startY);
+    if (secondLine) {
+      doc.text(secondLine, roleX, startY + 3.5); // 🔥 seconda riga sotto
+    }
   });
 
-  startY += 5;
+  startY += 9; // 🔥 più spazio dopo due righe intestazione
 
   // Corpo tabella
   const totalHoursByRole = {};
 
   for (let day = 1; day <= 31; day++) {
-    if (startY > 180) {
+    if (startY > 180) { // 🔥 bordo inferiore un po' più basso
       doc.addPage();
       startY = 20;
       doc.setFontSize(fontSize);
@@ -455,7 +466,6 @@ async function exportPDF() {
         const shiftText = `${shift.start}-${shift.end}`;
         doc.text(shiftText, startX + firstColWidth + idx * colWidth, startY);
 
-        // Calcolo ore
         const [sh, sm] = shift.start.split(':').map(Number);
         const [eh, em] = shift.end.split(':').map(Number);
         let diff = (eh * 60 + em) - (sh * 60 + sm);
@@ -471,7 +481,7 @@ async function exportPDF() {
   }
 
   // Riga Totali
-  startY += 4;
+  startY += 3;
   doc.setFontSize(7);
   doc.text('Totali', startX, startY);
 
@@ -481,7 +491,7 @@ async function exportPDF() {
   });
 
   // Firma Collaboratore
-  startY += 15;
+  startY += 12;
   doc.setFontSize(10);
   doc.text("Firma Collaboratore:", 10, startY);
   startY += 5;
