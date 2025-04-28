@@ -481,19 +481,24 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
-  // --- Intestazione tabella ---
-  doc.text('Data', startX + 2, startY);
-  roleList.forEach((role, idx) => {
-    const roleX = startX + firstColWidth + idx * colWidth;
-    const parts = role.split(' ');
-    const firstLine = parts.slice(0, -1).join(' ') || role;
-    const secondLine = parts.length > 1 ? parts.slice(-1)[0] : '';
+  // 🔥 Sfondo grigio chiaro intestazione tabella
+doc.setFillColor(230, 230, 230);
+doc.rect(startX, startY - 4, totalWidth, 8, 'F');
 
-    doc.text(firstLine, roleX + 1, startY);
-    if (secondLine) {
-      doc.text(secondLine, roleX + 1, startY + 3.5);
-    }
-  });
+// Scrivi titoli tabella
+doc.text('Data', startX + 2, startY);
+
+roleList.forEach((role, idx) => {
+  const roleX = startX + firstColWidth + idx * colWidth;
+  const parts = role.split(' ');
+  const firstLine = parts.slice(0, -1).join(' ') || role;
+  const secondLine = parts.length > 1 ? parts.slice(-1)[0] : '';
+
+  doc.text(firstLine, roleX + 1, startY);
+  if (secondLine) {
+    doc.text(secondLine, roleX + 1, startY + 3.5);
+  }
+});
 
   const totalWidth = firstColWidth + colWidth * roleList.length;
   let headerY = startY - 5; // Salvo punto di partenza delle linee verticali
