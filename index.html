@@ -3,32 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <title>Gestione Turni Collaboratori</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Librerie Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-  <!-- jsPDF per esportazione PDF -->
+  <!-- Libreria jsPDF per esportazione PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-    #login-form, #shift-section { max-width: 1200px; margin: 0 auto; }
-    input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { border: 1px solid #cccccc; padding: 8px; text-align: center; font-size: 10px; }
-    #error-message, #password-message, #reset-message { color: red; margin-top: 10px; }
-    details summary { cursor: pointer; font-weight: bold; margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
-    .summary-table { margin-top: 30px; text-align: left; }
-    canvas { border: 1px solid #ccc; margin-top: 20px; }
-    h1 { margin-bottom: 20px; }
-    #shift-content { margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    #shift-table th, #shift-table td {
+      padding: 2px 4px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    /* Righe zebrate */
+    #shift-table tbody tr:nth-child(odd) {
+      background-color: #ffffff;
+    }
+
+    #shift-table tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    #summary-table th, #summary-table td {
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #signature-pad {
+      margin-top: 10px;
+      border: 1px solid black;
+    }
+
   </style>
-
 </head>
-<body>
 
+<body>
+  
 <h1>Gestione Turni Collaboratori</h1>
 
 <!-- Login Form -->
