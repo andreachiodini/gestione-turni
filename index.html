@@ -370,12 +370,12 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  const logoBase64 = 'data:image/jpeg;base64,...'; // (inserisci qui il tuo logo base64 corretto)
+  const logoBase64 = 'data:image/jpeg;base64,...'; // (Inserisci qui il logo base64 corretto)
 
   // Header
   doc.addImage(logoBase64, 'JPEG', 5, 5, 30, 15);
   doc.setFontSize(18);
-  doc.text('CENTRO FIN LAMPUGNANO', 60, 15);
+  doc.text('CENTRO FIN LAMPUGNANO', 70, 15);
   doc.setFontSize(14);
 
   const now = new Date();
@@ -384,15 +384,15 @@ async function exportPDF() {
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 60, 25);
-  doc.text(fullName, 60, 35);
+  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 70, 25);
+  doc.text(fullName, 70, 35);
 
-  // Tabella
+  // Tabella setup
   let startY = 50;
   const startX = 5;
-  const firstColWidth = 25; // colonna "Data" larga
-  const colWidth = 15; // 🔥 colonna mansioni più larga
-  const fontSize = 6; // font piccolo compatto
+  const firstColWidth = 25; // Colonna Data
+  const colWidth = 22; // 🔥 Colonna Mansioni più larga
+  const fontSize = 5.5; // 🔥 Font piccolo compatto
   doc.setFontSize(fontSize);
 
   const shiftsByDateRole = {};
@@ -423,18 +423,17 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
-  // Scrive intestazioni
+  // Scrive intestazioni (Mansioni)
   doc.text('Data', startX, startY);
   roleList.forEach((role, idx) => {
     const roleX = startX + firstColWidth + idx * colWidth;
-    const words = role.split(' ');
     let firstLine = '';
     let secondLine = '';
 
-    if (words.length > 1) {
-      const mid = Math.ceil(words.length / 2);
-      firstLine = words.slice(0, mid).join(' ');
-      secondLine = words.slice(mid).join(' ');
+    const parts = role.split(' ');
+    if (parts.length > 1) {
+      firstLine = parts.slice(0, -1).join(' '); // Tutto tranne l'ultima parola
+      secondLine = parts.slice(-1)[0];          // Solo l'ultima parola (es. "FERIALE")
     } else {
       firstLine = role;
       secondLine = '';
@@ -442,17 +441,17 @@ async function exportPDF() {
 
     doc.text(firstLine, roleX, startY);
     if (secondLine) {
-      doc.text(secondLine, roleX, startY + 3.5); // 🔥 seconda riga sotto
+      doc.text(secondLine, roleX, startY + 3.5); // 🔥 Scrive sotto solo la parte finale (FERIALE/FESTIVO)
     }
   });
 
-  startY += 9; // 🔥 più spazio dopo due righe intestazione
+  startY += 9; // 🔥 Più spazio dopo intestazioni a due righe
 
   // Corpo tabella
   const totalHoursByRole = {};
 
   for (let day = 1; day <= 31; day++) {
-    if (startY > 180) { // 🔥 bordo inferiore un po' più basso
+    if (startY > 190) { // 🔥 Margine in basso regolato
       doc.addPage();
       startY = 20;
       doc.setFontSize(fontSize);
@@ -482,7 +481,7 @@ async function exportPDF() {
 
   // Riga Totali
   startY += 3;
-  doc.setFontSize(7);
+  doc.setFontSize(6);
   doc.text('Totali', startX, startY);
 
   roleList.forEach((role, idx) => {
