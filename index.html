@@ -448,18 +448,11 @@ async function exportPDF() {
   const year = now.getFullYear();
 
   // Intestazione sopra
-doc.setFontSize(10);
-doc.text(`FOGLIO ORE DI ${month} ${year} - CENTRO FIN LAMPUGNANO`, 10, 10);
+  doc.setFontSize(10);
+  doc.text(`FOGLIO ORE DI ${month} ${year} - CENTRO FIN LAMPUGNANO`, 10, 10);
 
-doc.setFontSize(9);
+  doc.setFontSize(9);
 doc.text(fullName, 10, 16);
-
-// 🔥 Spazio extra sotto il nome collaboratore
-let startY = 26; // Prima era 20, ora mettiamo 26 per aumentare spazio
-
-const firstColWidth = 18; // larghezza colonna Data
-const colWidth = 18;      // larghezza colonna Mansioni
-const rowHeight = 4.5;    // altezza riga più sottile
 
   // Preparazione dati turni
   const rows = document.querySelectorAll('#shift-table tbody tr');
