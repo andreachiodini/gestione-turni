@@ -481,6 +481,8 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
+  const totalWidth = firstColWidth + colWidth * roleList.length;
+
   // 🔥 Sfondo grigio chiaro intestazione tabella
 doc.setFillColor(230, 230, 230);
 doc.rect(startX, startY - 4, totalWidth, 8, 'F');
