@@ -538,13 +538,18 @@ doc.text(fullName, 10, 16);
   });
 
   // ➡️ Linee della tabella
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.1);
-  for (let i = 0; i <= roleList.length + 1; i++) {
+ doc.setDrawColor(0);
+doc.setLineWidth(0.1);
+
+for (let i = 0; i <= roleList.length + 1; i++) {
     const x = startX + (i === 0 ? 0 : firstColWidth + (i - 1) * colWidth);
-    doc.line(x, 16, x, startY + 2);
-  }
-  doc.line(startX, 16, startX + totalWidth, 16);
+    doc.line(x, startY - 7, x, startY - 7 + 31 * rowHeight);
+}
+
+for (let i = 0; i <= 31; i++) {
+    const y = startY - 7 + i * rowHeight;
+    doc.line(startX, y, startX + totalWidth, y);
+}
 
   // ➡️ Firma collaboratore accanto al testo
   startY += 12;
