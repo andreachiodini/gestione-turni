@@ -370,17 +370,13 @@ async function exportPDF() {
     format: 'a4'
   });
 
-  doc.setFontSize(18);
-  doc.text('CENTRO FIN LAMPUGNANO', 40, 15); // 🔥 Spostato più a sinistra
-  doc.setFontSize(14);
+  // Impostazioni font uniformi
+  const headerFontSize = 14; // 🔥 Font unico per intestazioni
 
-  const now = new Date();
-  const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-                      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-  const month = monthNames[now.getMonth()];
-  const year = now.getFullYear();
-
-  doc.text(`FOGLIO ORE DI ${month.toUpperCase()} ${year}`, 40, 25);
+  // Titoli
+  doc.setFontSize(headerFontSize);
+  doc.text('CENTRO FIN LAMPUGNANO', 40, 15);
+  doc.text(`FOGLIO ORE DI ${new Date().toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase()}`, 40, 25);
   doc.text(fullName, 40, 35);
 
   // Tabella
