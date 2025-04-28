@@ -390,9 +390,9 @@ async function exportPDF() {
   // Tabella setup
   let startY = 50;
   const startX = 5;
-  const firstColWidth = 25; // Colonna Data
-  const colWidth = 22; // 🔥 Colonna Mansioni più larga
-  const fontSize = 5.5; // 🔥 Font piccolo compatto
+  const firstColWidth = 25;
+  const colWidth = 22;
+  const fontSize = 5.5;
   doc.setFontSize(fontSize);
 
   const shiftsByDateRole = {};
@@ -414,7 +414,6 @@ async function exportPDF() {
     shiftsByDateRole[day][role] = { start, end };
   });
 
-  // Prendiamo tutte le mansioni
   const allRoles = new Set();
   rows.forEach(row => {
     const role = row.querySelectorAll('td')[3].innerText;
@@ -423,47 +422,53 @@ async function exportPDF() {
 
   const roleList = Array.from(allRoles);
 
-  // Scrive intestazioni (Mansioni)
-  doc.text('Data', startX, startY);
+  // Scrive intestazioni
+  doc.text('Data', startX + 2, startY);
   roleList.forEach((role, idx) => {
     const roleX = startX + firstColWidth + idx * colWidth;
-    let firstLine = '';
-    let secondLine = '';
-
     const parts = role.split(' ');
-    if (parts.length > 1) {
-      firstLine = parts.slice(0, -1).join(' '); // Tutto tranne l'ultima parola
-      secondLine = parts.slice(-1)[0];          // Solo l'ultima parola (es. "FERIALE")
-    } else {
-      firstLine = role;
-      secondLine = '';
-    }
+    const firstLine = parts.slice(0, -1).join(' ') || role;
+    const secondLine = parts.length > 1 ? parts.slice(-1)[0] : '';
 
-    doc.text(firstLine, roleX, startY);
+    doc.text(firstLine, roleX + 1, startY);
     if (secondLine) {
-      doc.text(secondLine, roleX, startY + 3.5); // 🔥 Scrive sotto solo la parte finale (FERIALE/FESTIVO)
+      doc.text(secondLine, roleX + 1, startY + 3.5);
     }
   });
 
-  startY += 9; // 🔥 Più spazio dopo intestazioni a due righe
+  // Preparo punti per linee verticali
+  const totalWidth = firstColWidth + colWidth * roleList.length;
+  let lineStartY = startY - 5;
+  let lineEndY = startY + 165; // 🔥 spazio totale utile
 
-  // Corpo tabella
+  // Linee verticali
+  doc.setLineWidth(0.1);
+  doc.line(startX, lineStartY, startX, lineEndY); // Linea bordo sinistro Data
+  doc.line(startX + firstColWidth, lineStartY, startX + firstColWidth, lineEndY); // Linea dopo Data
+
+  roleList.forEach((role, idx) => {
+    const x = startX + firstColWidth + (idx + 1) * colWidth;
+    doc.line(x, lineStartY, x, lineEndY);
+  });
+
+  startY += 9;
+
   const totalHoursByRole = {};
 
   for (let day = 1; day <= 31; day++) {
-    if (startY > 190) { // 🔥 Margine in basso regolato
+    if (startY > 190) {
       doc.addPage();
       startY = 20;
       doc.setFontSize(fontSize);
     }
 
-    doc.text(day.toString(), startX, startY);
+    doc.text(day.toString(), startX + 2, startY);
 
     roleList.forEach((role, idx) => {
       const shift = shiftsByDateRole[day] ? shiftsByDateRole[day][role] : null;
       if (shift) {
         const shiftText = `${shift.start}-${shift.end}`;
-        doc.text(shiftText, startX + firstColWidth + idx * colWidth, startY);
+        doc.text(shiftText, startX + firstColWidth + idx * colWidth + 2, startY);
 
         const [sh, sm] = shift.start.split(':').map(Number);
         const [eh, em] = shift.end.split(':').map(Number);
@@ -476,17 +481,20 @@ async function exportPDF() {
       }
     });
 
+    // Linea orizzontale dopo ogni giorno
+    doc.line(startX, startY + 1.5, startX + totalWidth, startY + 1.5);
+
     startY += 4.5;
   }
 
   // Riga Totali
   startY += 3;
   doc.setFontSize(6);
-  doc.text('Totali', startX, startY);
+  doc.text('Totali', startX + 2, startY);
 
   roleList.forEach((role, idx) => {
     const total = totalHoursByRole[role] ? totalHoursByRole[role].toFixed(2) + 'h' : '';
-    doc.text(total, startX + firstColWidth + idx * colWidth, startY);
+    doc.text(total, startX + firstColWidth + idx * colWidth + 2, startY);
   });
 
   // Firma Collaboratore
@@ -498,7 +506,6 @@ async function exportPDF() {
   const signatureImage = canvas.toDataURL("image/png");
   doc.addImage(signatureImage, 'PNG', 10, startY, 80, 30);
 
-  // Nome file dinamico
   const userCleanName = firebase.auth().currentUser.email.split('@')[0].replace(/[\W_]+/g, '');
   const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
