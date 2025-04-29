@@ -106,6 +106,25 @@
         text-align: center;
       }
     }
+
+/* 🔥 Stile per campi form più grandi */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+}
+    
   </style>
 
   <!-- Librerie esterne Firebase e jsPDF -->
@@ -147,13 +166,28 @@
   </div>
 
   <div id="shift-content" style="display:none;">
-    <input type="date" id="date">
-    <input type="time" id="start-time">
-    <input type="time" id="end-time">
-    <select id="role"></select>
+  <div class="form-group">
+    <label for="date">Data</label>
+    <input type="date" id="date" required>
+  </div>
 
-    <button onclick="addShift()">Aggiungi / Salva Modifica</button>
-    <button onclick="logout()" style="background-color: red; color: white;">Logout</button>
+  <div class="form-group">
+    <label for="start-time">Ora Inizio</label>
+    <input type="time" id="start-time" required>
+  </div>
+
+  <div class="form-group">
+    <label for="end-time">Ora Fine</label>
+    <input type="time" id="end-time" required>
+  </div>
+
+  <div class="form-group">
+    <label for="role">Mansione</label>
+    <select id="role" required></select>
+  </div>
+
+  <button class="button" onclick="addShift()">Aggiungi / Salva Modifica</button>
+  <button class="button" onclick="logout()" style="background-color: red; color: white;">Logout</button>
 
     <h3>Filtri Turni</h3>
     <select id="filter-role" onchange="loadShifts()">
