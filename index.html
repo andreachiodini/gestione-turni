@@ -6,126 +6,116 @@
   <title>Gestione Turni - Centro FIN Lampugnano</title>
 
   <style>
+    <style>
+  /* Font moderno */
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  body {
+    font-family: 'Poppins', Arial, sans-serif;
+    margin: 20px;
+    padding: 0;
+    background-color: #f9f9f9;
+    padding-bottom: 150px;
+  }
+
+  h1, h2, h3 {
+    text-align: center;
+    color: #333;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  th, td {
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    background-color: #e9eff5;
+    color: #333;
+    font-weight: 600;
+  }
+
+  tr:hover {
+    background-color: #f1f7fc;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    background: #fff;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+    font-size: 15px;
+  }
+
+  button {
+    display: inline-block;
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #45a049;
+  }
+
+  canvas {
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+    margin-top: 10px;
+    background: white;
+  }
+
+  /* Responsive per mobile */
+  @media (max-width: 768px) {
     body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  padding: 0;
-  padding-bottom: 150px; /* ✅ Aggiunto margine sotto */
-  background-color: #f5f5f5;
-}
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      background: white;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
+      margin: 10px;
       font-size: 14px;
     }
 
-    th {
-      background-color: #eeeeee;
+    table {
+      font-size: 12px;
     }
 
     input, select, button {
-      margin: 5px 0;
-      padding: 8px;
       font-size: 14px;
-    }
-
-    canvas {
-      border: 1px solid #000;
-      margin-top: 10px;
     }
 
     h1, h2, h3 {
-      text-align: center;
+      font-size: 18px;
     }
-
-    .button {
-      display: inline-block;
-      padding: 10px 15px;
-      font-size: 14px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 5px;
-    }
-
-    .button:hover {
-      background-color: #45a049;
-    }
-
-    /* ✅ AGGIUNTA: Responsive per Mobile */
-    @media (max-width: 768px) {
-      body {
-        margin: 10px;
-        font-size: 14px;
-      }
-
-      table {
-        width: 100%;
-        font-size: 12px;
-      }
-
-      th, td {
-        padding: 4px;
-      }
-
-      #shift-table, #summary-table {
-        font-size: 11px;
-        width: 100%;
-      }
-
-      #signature-canvas, #signature-pad {
-        width: 100% !important;
-        height: auto !important;
-        max-height: 200px;
-      }
-
-      button {
-        width: 100%;
-        margin-top: 5px;
-        font-size: 14px;
-      }
-
-      input, select {
-        font-size: 14px;
-        width: 100%;
-      }
-
-      h1, h2, h3 {
-        font-size: 18px;
-        text-align: center;
-      }
-    }
-
-/* 🔥 Stile per campi form più grandi */
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.form-group input, .form-group select {
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
-}
-    
-  </style>
+  }
+</style>
 
   <!-- Librerie esterne Firebase e jsPDF -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
