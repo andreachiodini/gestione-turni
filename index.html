@@ -100,7 +100,7 @@
     }
 
     /* Responsive per mobile */
-    @media (max-width: 768px) {
+   @media (max-width: 768px) {
   body {
     margin: 10px;
     font-size: 14px;
@@ -109,24 +109,28 @@
   table {
     width: 95%;
     margin: 0 auto;
-    font-size: 10px;
+    font-size: 12px;
   }
 
   #shift-table, #summary-table {
     font-size: 11px;
   }
 
-  input, select {
-    width: 100%;
-    font-size: 15px;
-    padding: 10px; /* 🔥 campo un po' più alto */
-    margin-bottom: 8px; /* 🔥 spazio tra un campo e l'altro RIDOTTO */
-    border-radius: 6px;
+  .form-group {
+    margin-bottom: 8px; /* 🔥 Riduce spazio tra campi */
   }
 
   .form-group label {
     font-size: 14px;
-    margin-bottom: 3px;
+    margin-bottom: 4px; /* 🔥 Riduce spazio sotto il label */
+  }
+
+  input, select {
+    width: 100%;
+    font-size: 16px;
+    padding: 14px 10px; /* 🔥 Campi più ALTI */
+    margin-bottom: 8px; /* 🔥 Riduce spazio tra input */
+    border-radius: 8px;
   }
 
   #signature-canvas {
@@ -140,9 +144,10 @@
 
   button {
     width: 100%;
-    font-size: 14px;
-    padding: 12px;
-    margin-top: 8px;
+    font-size: 16px;
+    padding: 14px;
+    margin-top: 10px;
+    border-radius: 8px;
   }
 
   h1, h2, h3 {
