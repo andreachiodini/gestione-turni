@@ -2,174 +2,118 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Gestione Turni Collaboratori</title>
-  
-  <!-- Librerie Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestione Turni - Centro FIN Lampugnano</title>
 
-  <!-- Libreria jsPDF per esportazione PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  /* Responsive Mobile */
-@media (max-width: 768px) {
-  body {
-    margin: 10px;
-    font-size: 14px;
-  }
-
-  table {
-    font-size: 11px;
-    width: 100%;
-  }
-
-  th, td {
-    padding: 4px;
-  }
-
-  #shift-table, #summary-table {
-    font-size: 11px;
-    width: 100%;
-  }
-
-  #signature-canvas {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 200px;
-  }
-
-  button {
-    width: 100%;
-    margin-top: 5px;
-    font-size: 14px;
-  }
-
-  input, select {
-    font-size: 14px;
-    width: 100%;
-  }
-
-  h1, h2, h3 {
-    font-size: 18px;
-    text-align: center;
-  }
-}
-  
-  <style>
-/* ✅ Regole responsive mobile */
-@media (max-width: 768px) {
-  body {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  table {
-    width: 100%;
-    font-size: 12px;
-  }
-
-  th, td {
-    padding: 4px;
-    text-align: center;
-  }
-
-  #signature-pad {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 200px;
-  }
-
-  canvas {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 200px;
-    border: 1px solid #000;
-  }
-
-  .button {
-    width: 100%;
-    font-size: 14px;
-    margin-top: 5px;
-  }
-
-  h1, h2, h3 {
-    font-size: 18px;
-    text-align: center;
-  }
-}
-</style>
-  
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-    }
-
-    h1 {
-      font-size: 24px;
-      text-align: center;
+      padding: 0;
+      background-color: #f5f5f5;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-bottom: 20px;
+      background: white;
     }
 
-    #shift-table th, #shift-table td {
-      padding: 2px 4px;
-      font-size: 12px;
-      border: 1px solid #ddd;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
       text-align: center;
+      font-size: 14px;
     }
 
-    /* Righe zebrate */
-    #shift-table tbody tr:nth-child(odd) {
-      background-color: #ffffff;
+    th {
+      background-color: #eeeeee;
     }
 
-    #shift-table tbody tr:nth-child(even) {
-      background-color: #f2f2f2;
+    input, select, button {
+      margin: 5px 0;
+      padding: 8px;
+      font-size: 14px;
     }
 
-    #summary-table th, #summary-table td {
-      padding: 6px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-
-    button {
+    canvas {
+      border: 1px solid #000;
       margin-top: 10px;
-      padding: 8px 16px;
-      background-color: #007bff;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 10px 15px;
+      font-size: 14px;
+      background-color: #4CAF50;
       color: white;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 14px;
-      border-radius: 5px;
+      margin: 5px;
     }
 
-    button:hover {
-      background-color: #0056b3;
+    .button:hover {
+      background-color: #45a049;
     }
 
-    input, select {
-      padding: 8px;
-      margin: 5px 0;
-      font-size: 14px;
-      width: 100%;
-      box-sizing: border-box;
-    }
+    /* ✅ AGGIUNTA: Responsive per Mobile */
+    @media (max-width: 768px) {
+      body {
+        margin: 10px;
+        font-size: 14px;
+      }
 
-    #signature-pad {
-      margin-top: 10px;
-      border: 1px solid black;
-    }
+      table {
+        width: 100%;
+        font-size: 12px;
+      }
 
+      th, td {
+        padding: 4px;
+      }
+
+      #shift-table, #summary-table {
+        font-size: 11px;
+        width: 100%;
+      }
+
+      #signature-canvas, #signature-pad {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 200px;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 5px;
+        font-size: 14px;
+      }
+
+      input, select {
+        font-size: 14px;
+        width: 100%;
+      }
+
+      h1, h2, h3 {
+        font-size: 18px;
+        text-align: center;
+      }
+    }
   </style>
-</head>
 
+  <!-- Librerie esterne Firebase e jsPDF -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
 <body>
   
 <h1>Gestione Turni Collaboratori</h1>
