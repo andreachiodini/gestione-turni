@@ -101,23 +101,36 @@
 
     /* Responsive per mobile */
     @media (max-width: 768px) {
-      body {
-        margin: 10px;
-        font-size: 14px;
-      }
+  body {
+    margin: 10px;
+    font-size: 14px;
+  }
 
-      table {
-        font-size: 12px;
-      }
+  table {
+    width: 95%; /* 🔥 più larga */
+    margin: 0 auto;
+    font-size: 12px;
+  }
 
-      input, select, button {
-        font-size: 14px;
-      }
+  input, select, button {
+    font-size: 14px;
+    width: 100%;
+  }
 
-      h1, h2, h3 {
-        font-size: 18px;
-      }
-    }
+  #signature-canvas {
+    width: 95% !important; /* 🔥 canvas firma uguale alla tabella */
+    height: auto !important;
+    max-height: 200px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 8px;
+  }
+
+  h1, h2, h3 {
+    font-size: 18px;
+    text-align: center;
+  }
+}
   </style>
 
   <!-- Librerie Firebase e jsPDF -->
