@@ -117,20 +117,31 @@
   }
 
   .form-group {
-    margin-bottom: 8px; /* 🔥 Riduce spazio tra campi */
+    margin-bottom: 10px;
   }
 
   .form-group label {
+    display: block;
     font-size: 14px;
-    margin-bottom: 4px; /* 🔥 Riduce spazio sotto il label */
+    margin-bottom: 4px;
   }
 
-  input, select {
+  input[type="date"], input[type="time"], select {
     width: 100%;
-    font-size: 16px;
-    padding: 14px 10px; /* 🔥 Campi più ALTI */
-    margin-bottom: 8px; /* 🔥 Riduce spazio tra input */
-    border-radius: 8px;
+    height: 45px; /* ✅ Altezza omogenea per tutti */
+    padding: 8px;
+    font-size: 15px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+  }
+
+  button {
+    width: 48%;
+    font-size: 14px;
+    padding: 10px;
+    margin: 5px 1%;
+    display: inline-block;
+    border-radius: 6px;
   }
 
   #signature-canvas {
@@ -139,14 +150,6 @@
     max-height: 200px;
     margin: 0 auto;
     display: block;
-    border-radius: 8px;
-  }
-
-  button {
-    width: 100%;
-    font-size: 16px;
-    padding: 14px;
-    margin-top: 10px;
     border-radius: 8px;
   }
 
