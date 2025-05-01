@@ -406,6 +406,7 @@ canvas.addEventListener("mousedown", (e) => {
   ctx.beginPath();
   ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 });
+
 canvas.addEventListener("mousemove", (e) => {
   if (!drawing) return;
   const rect = canvas.getBoundingClientRect();
@@ -414,9 +415,11 @@ canvas.addEventListener("mousemove", (e) => {
   ctx.beginPath();
   ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 });
+
 canvas.addEventListener("mouseup", () => {
   drawing = false;
 });
+
 canvas.addEventListener("mouseleave", () => {
   drawing = false;
 });
