@@ -342,14 +342,6 @@ function login() {
   const email = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value.trim();
 
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-      return firebase.auth().signInWithEmailAndPassword(email, password);
-    })
-    function login() {
-  const email = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-
   auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
       document.getElementById('login-form').style.display = 'none';
@@ -357,7 +349,7 @@ function login() {
       document.getElementById('user-name').innerText = userCredential.user.email;
       currentUser = userCredential.user.uid;
 
-      // ✅ Spostato e corretto: controllo nome+cognome
+      // Verifica se il Nome e Cognome sono già salvati
       database.ref('users/' + currentUser).once('value').then(snapshot => {
         if (snapshot.exists() && snapshot.val().fullName) {
           fullName = snapshot.val().fullName;
