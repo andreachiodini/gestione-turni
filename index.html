@@ -392,43 +392,6 @@ canvas.style.width = "100%";
 canvas.style.height = "150px";
 ctx.setTransform(ratio, 0, 0, ratio, 0, 0);  // sostituisce scale()
 
-  // Mouse
-canvas.addEventListener('mousedown', e => {
-  drawing = true;
-  const rect = canvas.getBoundingClientRect();
-  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-});
-canvas.addEventListener('mouseup', () => {
-  drawing = false;
-  ctx.beginPath();
-});
-canvas.addEventListener('mousemove', e => {
-  if (!drawing) return;
-  const rect = canvas.getBoundingClientRect();
-  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-  ctx.stroke();
-});
-
-// Touch (per il dito su mobile)
-canvas.addEventListener('touchstart', e => {
-  drawing = true;
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-});
-canvas.addEventListener('touchend', () => {
-  drawing = false;
-  ctx.beginPath();
-});
-canvas.addEventListener('touchmove', e => {
-  if (!drawing) return;
-  e.preventDefault(); // evita scroll durante la firma
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-  ctx.stroke();
-});
-
 // Lista mansioni
 const mansions = [
   "Assistente bagnanti FERIALE", "Assistente bagnanti FESTIVO", "Cassa FERIALE", "Cassa FESTIVO",
