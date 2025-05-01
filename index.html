@@ -260,23 +260,24 @@ button {
 <button onclick="clearSignature()" class="green-button">Pulisci Firma</button>
 <button onclick="exportPDF()" class="green-button">Esporta Foglio Ore in PDF</button>
 
-<!-- Modifica Nome e Cognome -->
-<div style="margin-top: 30px;">
-  <h4>Modifica Nome e Cognome</h4>
-  <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
-  <button onclick="updateName()">Aggiorna Nome</button>
-  <div id="name-update-message"></div>
-</div>
-
 <!-- Dettagli -->
 <details style="margin-top: 30px;">
   <summary>Dettagli</summary>
 
+  <!-- Cambia la tua password -->
   <details>
     <summary>Cambia la tua password</summary>
     <input type="password" id="old-password" placeholder="Vecchia Password"><br>
     <input type="password" id="new-password" placeholder="Nuova Password"><br>
     <button onclick="changePassword()">Conferma Cambio Password</button>
+  </details>
+
+  <!-- Modifica nome e cognome -->
+  <details>
+    <summary>Modifica nome e cognome</summary>
+    <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
+    <button onclick="updateName()">Aggiorna Nome</button>
+    <div id="name-update-message"></div>
   </details>
 </details>
 
