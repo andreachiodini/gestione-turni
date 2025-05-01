@@ -321,7 +321,7 @@ function login() {
   const email = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value.trim();
 
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  auth.setPersistence(auth.Auth.Persistence.LOCAL)
     .then(() => {
       return auth.signInWithEmailAndPassword(email, password);
     })
