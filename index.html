@@ -282,6 +282,27 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+    console.log("✅ Persistenza LOCAL attivata");
+  })
+  .catch((error) => {
+    console.error("❌ Errore persistenza:", error.message);
+  });
+  
+  auth.onAuthStateChanged(user => {
+  if (user) {
+    // Utente già loggato
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('shift-section').style.display = 'block';
+    document.getElementById('user-name').innerText = user.email;
+    currentUser = user.uid;
+  } else {
+    // Nessuna sessione salvata, mostra login
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('shift-section').style.display = 'none';
+  }
+});
 
 let currentUser = "";
 let fullName = "";
