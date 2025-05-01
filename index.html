@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestione Turni - Centro FIN Lampugnano</title>
 
-  <!-- Stile moderno corretto -->
+  <!-- ✅ Font Google corretto -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- ✅ Stile moderno corretto -->
   <style>
     details {
-  margin-top: 30px;
-  margin-bottom: 10px;
-}
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
 
     body {
       font-family: 'Poppins', Arial, sans-serif;
@@ -263,12 +265,13 @@ button {
   <input type="password" id="new-password" placeholder="Nuova Password">
   <button onclick="changePassword()">Conferma Cambio Password</button>
   <div id="password-message"></div>
-</details
-  <details style="margin-top: 30px;">
+<details style="margin-top: 30px;">
   <summary>Modifica nome e cognome</summary>
-  <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
-  <button onclick="updateName()">Aggiorna Nome</button>
-  <div id="name-update-message"></div>
+  <div style="margin-top: 10px;">
+    <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
+    <button onclick="updateName()">Aggiorna Nome</button>
+    <div id="name-update-message"></div>
+  </div>
 </details>
 
 <!-- 🔥 Qui sotto aggiungi il logout -->
