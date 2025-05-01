@@ -346,19 +346,18 @@ function login() {
     .then(() => {
       return firebase.auth().signInWithEmailAndPassword(email, password);
     })
+    function login() {
+  const email = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('shift-section').style.display = 'block';
       document.getElementById('user-name').innerText = userCredential.user.email;
       currentUser = userCredential.user.uid;
-    })
-    .catch(error => {
-      console.error("Errore login:", error.message);
-      alert("Login fallito: " + error.message);
-    });
-}
 
-      // Verifica se il Nome e Cognome sono già salvati
+      // ✅ Spostato e corretto: controllo nome+cognome
       database.ref('users/' + currentUser).once('value').then(snapshot => {
         if (snapshot.exists() && snapshot.val().fullName) {
           fullName = snapshot.val().fullName;
@@ -370,8 +369,12 @@ function login() {
           document.getElementById('shift-content').style.display = 'none';
         }
       });
+
     })
-    .catch(() => document.getElementById('error-message').innerText = "Credenziali errate. Riprova.");
+    .catch(error => {
+      console.error("Errore login:", error.message);
+      document.getElementById('error-message').innerText = "Credenziali errate. Riprova.";
+    });
 }
 
 // Salva Nome Cognome
