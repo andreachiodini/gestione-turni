@@ -390,10 +390,10 @@ let drawing = false;
  // Inizializza canvas in modo responsivo
 function resizeCanvas() {
   const ratio = window.devicePixelRatio || 1;
-  canvas.width = canvas.offsetWidth * ratio;
-  canvas.height = 150 * ratio;
-  canvas.style.width = "100%";
-  canvas.style.height = "150px";
+  const displayWidth = canvas.offsetWidth || 400; // fallback se 0
+  const displayHeight = canvas.offsetHeight || 150;
+  canvas.width = displayWidth * ratio;
+  canvas.height = displayHeight * ratio;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
