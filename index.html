@@ -253,30 +253,36 @@ button {
       </table>
     </div>
 
-    <h3>Firma Collaboratore</h3>
-    <canvas id="signature-canvas" width="500" height="100" style="border: 2px solid #000; border-radius: 4px;"></canvas><br>
-    <button onclick="clearSignature()" style="margin-top: 10px;">Pulisci Firma</button>
-    <button onclick="exportPDF()" style="margin-top: 20px;">Esporta Foglio Ore in PDF</button>
+   <!-- Firma Collaboratore -->
+<h3>Firma Collaboratore</h3>
+<canvas id="signature-pad" width="400" height="100"></canvas>
+<br>
+<button onclick="clearSignature()" class="green-button">Pulisci Firma</button>
+<button onclick="exportPDF()" class="green-button">Esporta Foglio Ore in PDF</button>
 
-    <details>
-      <details>
-  <summary>Cambia la tua password</summary>
-  <input type="password" id="old-password" placeholder="Vecchia Password">
-  <input type="password" id="new-password" placeholder="Nuova Password">
-  <button onclick="changePassword()">Conferma Cambio Password</button>
-  <div id="password-message"></div>
+<!-- Modifica Nome e Cognome -->
+<div style="margin-top: 30px;">
+  <h4>Modifica Nome e Cognome</h4>
+  <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
+  <button onclick="updateName()">Aggiorna Nome</button>
+  <div id="name-update-message"></div>
+</div>
+
+<!-- Dettagli -->
 <details style="margin-top: 30px;">
-  <summary>Modifica nome e cognome</summary>
-  <div style="margin-top: 10px;">
-    <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
-    <button onclick="updateName()">Aggiorna Nome</button>
-    <div id="name-update-message"></div>
-  </div>
+  <summary>Dettagli</summary>
+
+  <details>
+    <summary>Cambia la tua password</summary>
+    <input type="password" id="old-password" placeholder="Vecchia Password"><br>
+    <input type="password" id="new-password" placeholder="Nuova Password"><br>
+    <button onclick="changePassword()">Conferma Cambio Password</button>
+  </details>
 </details>
 
-<!-- 🔥 Qui sotto aggiungi il logout -->
-<div style="margin-top: 20px; text-align: center;">
-  <button class="button" onclick="logout()" style="background-color: red; color: white;">Logout</button>
+<!-- Logout -->
+<div style="margin-top: 30px;">
+  <button onclick="logout()" class="red-button">Logout</button>
 </div>
 
 <script>
