@@ -438,13 +438,6 @@ canvas.addEventListener("touchmove", (e) => {
 canvas.addEventListener("touchend", () => {
   drawing = false;
 });
-// Calibrazione canvas per retina / touch (🔥 UNA VOLTA SOLA)
-const ratio = window.devicePixelRatio || 1;
-canvas.width = canvas.offsetWidth * ratio;
-canvas.height = 150 * ratio;
-canvas.style.width = "100%";
-canvas.style.height = "150px";
-ctx.setTransform(ratio, 0, 0, ratio, 0, 0);  // sostituisce scale()
 
 // Lista mansioni
 const mansions = [
