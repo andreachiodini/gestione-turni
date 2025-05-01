@@ -290,7 +290,10 @@
 
    <!-- Firma Collaboratore -->
 <h3>Firma Collaboratore</h3>
-<canvas id="signature-canvas" style="width:100%; height:150px;"></canvas>
+<div style="text-align: center; margin-top: 10px;">
+  <p style="margin-bottom: 5px; font-size: 14px; color: #555;">✍️ Firma qui sotto</p>
+  <canvas id="signature-canvas" style="width:100%; height:150px; border: 2px dashed #4caf50; background: #fff; border-radius: 6px;"></canvas>
+</div>
 <br>
 <button onclick="clearSignature()" class="green-button">Pulisci Firma</button>
 <button onclick="exportPDF()" class="green-button">Esporta Foglio Ore in PDF</button>
