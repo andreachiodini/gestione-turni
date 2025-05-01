@@ -672,19 +672,6 @@ canvas.addEventListener('touchend', (e) => {
   ctx.beginPath();
 });
 
-// ✅ Bloccare lo scroll su Mobile durante la firma
-canvas.addEventListener('touchstart', function (e) {
-  e.preventDefault();
-}, { passive: false });
-
-canvas.addEventListener('touchmove', function (e) {
-  e.preventDefault();
-}, { passive: false });
-
-canvas.addEventListener('touchend', function (e) {
-  e.preventDefault();
-}, { passive: false });
-
 // Esportazione PDF corretta
 async function exportPDF() {
     const { jsPDF } = window.jspdf;
