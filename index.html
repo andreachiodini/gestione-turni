@@ -664,6 +664,16 @@ canvas.addEventListener('mouseleave', () => {
   ctx.beginPath();
 });
 
+canvas.addEventListener('mouseup', () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
+canvas.addEventListener('mouseleave', () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
 // Esportazione PDF corretta
 async function exportPDF() {
     const { jsPDF } = window.jspdf;
