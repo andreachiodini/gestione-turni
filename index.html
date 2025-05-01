@@ -167,13 +167,13 @@
     margin: 2px;
   }
 
-  #signature-canvas {
-    width: 100% !important;
-    height: 150px !important;
-    margin: 0 auto;
-    display: block;
-    border-radius: 8px;
-  }
+ #signature-canvas {
+  touch-action: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  display: block;
+  margin: 10px auto;
+}
 
   h1, h2, h3 {
     font-size: 18px;
@@ -290,7 +290,7 @@
 
    <!-- Firma Collaboratore -->
 <h3>Firma Collaboratore</h3>
-<canvas id="signature-canvas" width="400" height="100"></canvas>
+<canvas id="signature-canvas" width="400" height="150"></canvas>
 <br>
 <button onclick="clearSignature()" class="green-button">Pulisci Firma</button>
 <button onclick="exportPDF()" class="green-button">Esporta Foglio Ore in PDF</button>
@@ -384,12 +384,13 @@ const canvas = document.getElementById('signature-canvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
 
-  // Calibrazione canvas per retina / touch
-canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-canvas.height = 150 * window.devicePixelRatio;
+// Calibrazione canvas per retina / touch (🔥 UNA VOLTA SOLA)
+const ratio = window.devicePixelRatio || 1;
+canvas.width = canvas.offsetWidth * ratio;
+canvas.height = 150 * ratio;
 canvas.style.width = "100%";
 canvas.style.height = "150px";
-ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+ctx.setTransform(ratio, 0, 0, ratio, 0, 0);  // sostituisce scale()
 
   // Mouse
 canvas.addEventListener('mousedown', e => {
