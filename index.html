@@ -7,6 +7,10 @@
 
   <!-- Stile moderno corretto -->
   <style>
+    details {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
     body {
@@ -259,6 +263,12 @@ button {
   <input type="password" id="new-password" placeholder="Nuova Password">
   <button onclick="changePassword()">Conferma Cambio Password</button>
   <div id="password-message"></div>
+</details
+  <details style="margin-top: 30px;">
+  <summary>Modifica nome e cognome</summary>
+  <input type="text" id="edit-full-name" placeholder="Nome e Cognome">
+  <button onclick="updateName()">Aggiorna Nome</button>
+  <div id="name-update-message"></div>
 </details>
 
 <!-- 🔥 Qui sotto aggiungi il logout -->
@@ -734,6 +744,20 @@ doc.rect(startX + 35, signatureY - 5, 50, 20); // rettangolo firma
     const fileName = `FoglioOre_${userCleanName}_${month}${year}.pdf`;
 
     doc.save(fileName);
+}
+  function updateName() {
+  const newName = document.getElementById('edit-full-name').value.trim();
+  if (newName === "") return;
+
+  database.ref('users/' + currentUser).update({
+    fullName: newName
+  }).then(() => {
+    fullName = newName;
+    document.getElementById('name-update-message').innerText = "Nome aggiornato con successo!";
+  }).catch((error) => {
+    document.getElementById('name-update-message').innerText = "Errore durante l'aggiornamento.";
+    console.error("Errore aggiornamento nome:", error.message);
+  });
 }
 </script>
 </body>
