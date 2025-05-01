@@ -635,6 +635,35 @@ canvas.addEventListener('touchend', (e) => {
   ctx.beginPath();
 });
 
+  // Mouse (Desktop)
+canvas.addEventListener('mousedown', (e) => {
+  drawing = true;
+  const rect = canvas.getBoundingClientRect();
+  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!drawing) return;
+  const rect = canvas.getBoundingClientRect();
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'black';
+  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+});
+
+canvas.addEventListener('mouseup', () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
+canvas.addEventListener('mouseleave', () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
 // Esportazione PDF corretta
 async function exportPDF() {
     const { jsPDF } = window.jspdf;
