@@ -384,6 +384,47 @@ const canvas = document.getElementById('signature-canvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
 
+  // Mouse (PC)
+canvas.addEventListener("mousedown", (e) => {
+  drawing = true;
+  const rect = canvas.getBoundingClientRect();
+  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+});
+canvas.addEventListener("mousemove", (e) => {
+  if (!drawing) return;
+  const rect = canvas.getBoundingClientRect();
+  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  ctx.stroke();
+});
+canvas.addEventListener("mouseup", () => {
+  drawing = false;
+  ctx.beginPath();
+});
+canvas.addEventListener("mouseleave", () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
+// Touch (mobile)
+canvas.addEventListener("touchstart", (e) => {
+  drawing = true;
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+canvas.addEventListener("touchmove", (e) => {
+  if (!drawing) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+  ctx.stroke();
+});
+canvas.addEventListener("touchend", () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
 // Calibrazione canvas per retina / touch (🔥 UNA VOLTA SOLA)
 const ratio = window.devicePixelRatio || 1;
 canvas.width = canvas.offsetWidth * ratio;
@@ -605,50 +646,6 @@ function deleteShift(id) {
 function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
-const ctx = canvas.getContext('2d');
-let drawing = false;
-
-  // Mouse (PC)
-canvas.addEventListener("mousedown", (e) => {
-  drawing = true;
-  const rect = canvas.getBoundingClientRect();
-  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-});
-canvas.addEventListener("mousemove", (e) => {
-  if (!drawing) return;
-  const rect = canvas.getBoundingClientRect();
-  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-  ctx.stroke();
-});
-canvas.addEventListener("mouseup", () => {
-  drawing = false;
-  ctx.beginPath();
-});
-canvas.addEventListener("mouseleave", () => {
-  drawing = false;
-  ctx.beginPath();
-});
-
-// Touch (mobile)
-canvas.addEventListener("touchstart", (e) => {
-  drawing = true;
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-});
-canvas.addEventListener("touchmove", (e) => {
-  if (!drawing) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-  ctx.stroke();
-});
-canvas.addEventListener("touchend", () => {
-  drawing = false;
-  ctx.beginPath();
-});
 
 // Esportazione PDF corretta
 async function exportPDF() {
