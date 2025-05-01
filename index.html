@@ -290,7 +290,7 @@
 
    <!-- Firma Collaboratore -->
 <h3>Firma Collaboratore</h3>
-<canvas id="signature-canvas" width="400" height="150"></canvas>
+<canvas id="signature-canvas" style="width:100%; height:150px;"></canvas>
 <br>
 <button onclick="clearSignature()" class="green-button">Pulisci Firma</button>
 <button onclick="exportPDF()" class="green-button">Esporta Foglio Ore in PDF</button>
@@ -387,18 +387,25 @@ let drawing = false;
  // Inizializza canvas in modo responsivo
 function resizeCanvas() {
   const ratio = window.devicePixelRatio || 1;
-  canvas.width = canvas.offsetWidth * ratio;
-  canvas.height = 150 * ratio;
-  canvas.style.width = "100%";
-  canvas.style.height = "150px";
+
+  const displayWidth = canvas.clientWidth;
+  const displayHeight = 150; // o canvas.clientHeight se dinamico
+
+  canvas.width = displayWidth * ratio;
+  canvas.height = displayHeight * ratio;
+
+  canvas.style.width = displayWidth + "px";
+  canvas.style.height = displayHeight + "px";
+
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.strokeStyle = 'black';
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
 
+  window.addEventListener('load', resizeCanvas);
+window.addEventListener('resize', resizeCanvas);
+  
 // Mouse
 canvas.addEventListener("mousedown", (e) => {
   drawing = true;
