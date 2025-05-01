@@ -292,13 +292,26 @@ const database = firebase.database();
   
   auth.onAuthStateChanged(user => {
   if (user) {
-    // Utente già loggato
     document.getElementById('login-form').style.display = 'none';
     document.getElementById('shift-section').style.display = 'block';
     document.getElementById('user-name').innerText = user.email;
     currentUser = user.uid;
+
+    // 🔥 Controlla se il nome è già stato salvato (anche al refresh)
+    database.ref('users/' + currentUser).once('value').then(snapshot => {
+      if (snapshot.exists() && snapshot.val().fullName) {
+        fullName = snapshot.val().fullName;
+        document.getElementById('name-form').style.display = 'none';
+        document.getElementById('shift-content').style.display = 'block';
+        loadShifts();
+      } else {
+        document.getElementById('name-form').style.display = 'block';
+        document.getElementById('shift-content').style.display = 'none';
+      }
+    });
+
   } else {
-    // Nessuna sessione salvata, mostra login
+    // Nessun utente loggato
     document.getElementById('login-form').style.display = 'block';
     document.getElementById('shift-section').style.display = 'none';
   }
